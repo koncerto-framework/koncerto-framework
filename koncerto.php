@@ -185,4 +185,28 @@ class KoncertoResponse
  */
 class KoncertoController
 {
+    /**
+     * @param string $template
+     * @param array<string, mixed> $context
+     * @param array<string, string> $headers
+     */
+    public function render($template, $context = array(), $headers = array()) {
+        require_once('../koncerto-framework/tinybutstrong/tbs_class.php');
+
+        $tbs = new clsTinyButStrong();
+        $tbs->MethodsAllowed = true;
+        $tbs->ObjectRef = array();
+        $tbs->ObjectRef['request'] = new KoncertoRequest();
+        $tbs->LoadTemplate($template);
+
+        foreach ($context as $key => $value) {
+            if (is_array($value)) {
+                $tbs->MergeBlock($key, 'array', $value);
+                continue;
+            }
+            $tbs->MergeField($key, $value);
+        }
+
+        return $tbs->Show(false);
+    }
 }
