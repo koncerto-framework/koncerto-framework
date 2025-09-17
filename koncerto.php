@@ -191,7 +191,7 @@ class KoncertoController
      * @param array<string, string> $headers
      */
     public function render($template, $context = array(), $headers = array()) {
-        require_once('../koncerto-framework/tinybutstrong/tbs_class.php');
+        require_once('tinybutstrong/tbs_class.php');
 
         $tbs = new clsTinyButStrong();
         $tbs->MethodsAllowed = true;
@@ -204,9 +204,131 @@ class KoncertoController
                 $tbs->MergeBlock($key, 'array', $value);
                 continue;
             }
+            if (is_a($value, 'KoncertoForm')) {
+                /** @var KoncertoForm */
+                $form = $value;
+                $fieldKey = sprintf('%s.%s', $key, 'field');
+                $tbs->MergeBlock($fieldKey, $form->getFields());
+                foreach ($form->getFields() as $field) {
+                    if ('select' === $field->getType()) {
+                        $optionsKey = sprintf(
+                            '%s.%s.%s.%s',
+                            $key,
+                            'field',
+                            $field->getName(),
+                            'options'
+                        );
+                        $tbs->MergeBlock($optionsKey, $field->getOptions());
+                    }
+                }
+                continue;
+            }
             $tbs->MergeField($key, $value);
         }
 
         return $tbs->Show(false);
+    }
+}
+
+class KoncertoForm
+{
+    /** @var KoncertoField[] */
+    private $fields = array();
+
+    /**
+     * @param KoncertoField $field
+     * @return KoncertoForm
+     */
+    public function add($field) {
+        array_push($this->fields, $field);
+
+        return $this;
+    }
+
+    /**
+     * @return KoncertoField[]
+     */
+    public function getFields() {
+        return $this->fields;
+    }
+}
+
+class KoncertoField
+{
+    /** @var ?string */
+    private $name = null;
+    /** @var string */
+    private $type = 'text';
+    /** @var ?string */
+    private $label = null;
+    /** @var array<array-key, string> */
+    private $options = array();
+
+    /**
+     * @param string $type
+     * @return KoncertoField
+     */
+    public function setName($name) {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName() {
+        return $this->name;
+    }
+
+    /**
+     * @param string $type
+     * @return KoncertoField
+     */
+    public function setType($type) {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType() {
+        return $this->type;
+    }
+
+    /**
+     * @param string $label
+     * @return KoncertoField
+     */
+    public function setLabel($label) {
+        $this->label = $label;
+
+        return $this;
+    }
+
+    /**
+     * @return ?string
+     */
+    public function getLabel() {
+        return $this->label;
+    }
+
+    /**
+     * @param array<array-key, string> $options
+     * @return KoncertoField
+     */
+    public function setOptions($options) {
+        $this->options = $options;
+
+        return $this;
+    }
+
+    /**
+     * @return array<array-key, string>
+     */
+    public function getOptions() {
+        return $this->options;
     }
 }
