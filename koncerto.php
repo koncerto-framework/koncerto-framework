@@ -19,6 +19,10 @@ class Koncerto
         }
         list($controller, $action) = explode('::', $match);
         $response = (new $controller())->$action();
+        $headers = $response->getHeaders();
+        foreach ($headers as $headerName => $headerValue) {
+            header(sprintf('%s: %s', $headerName, $headerValue));
+        }
 
         return $response->getContent();
     }
@@ -152,6 +156,18 @@ class KoncertoRequest
 
         return '/';
     }
+
+    /**
+     * @param string $argName
+     * @return mixed
+     */
+    public function get($argName) {
+        if (!array_key_exists($argName, $_REQUEST)) {
+            return null;
+        }
+
+        return $_REQUEST[$argName];
+    }
 }
 
 /**
@@ -159,8 +175,37 @@ class KoncertoRequest
  */
 class KoncertoResponse
 {
+    /** @var array<string, string> */
+    private $headers = array();
+
     /** @var ?string */
     private $content = null;
+
+    /**
+     * @param string $headerName
+     * @param ?string $headerValue
+     * @return KoncertoResponse
+     */
+    public function setHeader($headerName, $headerValue = null) {
+        $headerName = strtolower(($headerName));
+
+        if (null === $headerValue && array_key_exists($headerName, $this->headers)) {
+            unset($this->headers[$headerName]);
+
+            return $this;
+        }
+
+        $this->headers[$headerName] = $headerValue;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getHeaders() {
+        return $this->headers;
+    }
 
     /**
      * @param ?string $content
@@ -207,6 +252,23 @@ class KoncertoController
             if (is_a($value, 'KoncertoForm')) {
                 /** @var KoncertoForm */
                 $form = $value;
+                $form->setOption('name', $key);
+                $tbs->TplVars[sprintf('forms[%s]', $key)] = $form;
+                $dataKey = sprintf('data[%s]', $key);
+                $tbs->TplVars[$dataKey] = array();
+                foreach ((array)$form->getData() as $k => $v) {
+                    $fieldKey = sprintf('field[%s]', $k);
+                    $tbs->TplVars[$dataKey][$fieldKey] = $v;
+                }
+                foreach ($form->getOptions() as $optionName => $optionValue) {
+                    $optionKey = sprintf(
+                        '%s.%s.%s',
+                        $key,
+                        'option',
+                        $optionName
+                    );
+                    $tbs->MergeField($optionKey, $optionValue);
+                }
                 $fieldKey = sprintf('%s.%s', $key, 'field');
                 $tbs->MergeBlock($fieldKey, $form->getFields());
                 foreach ($form->getFields() as $field) {
@@ -228,6 +290,16 @@ class KoncertoController
 
         return $tbs->Show(false);
     }
+
+    /**
+     * @param array<array-key, mixed> $data
+     * @return KoncertResponse
+     */
+    public function json($data) {
+        return (new KoncertoResponse())
+            ->setHeader('Content-type', 'application/json')
+            ->setContent(json_encode($data));
+    }
 }
 
 class KoncertoForm
@@ -235,12 +307,16 @@ class KoncertoForm
     /** @var KoncertoField[] */
     private $fields = array();
 
+    /** @var array<string, mixed> */
+    private $options = array();
+
     /**
      * @param KoncertoField $field
      * @return KoncertoForm
      */
     public function add($field) {
         array_push($this->fields, $field);
+        $field->setForm($this);
 
         return $this;
     }
@@ -251,10 +327,77 @@ class KoncertoForm
     public function getFields() {
         return $this->fields;
     }
+
+    /**
+     * @param string $optionName
+     * @param ?mixed $optionValue
+     * @return KoncertoForm
+     */
+    public function setOption($optionName, $optionValue = null) {
+        $optionName = strtolower(($optionName));
+
+        if (null === $optionValue && array_key_exists($optionName, $this->options)) {
+            unset($this->options[$optionName]);
+
+            return $this;
+        }
+
+        $this->options[$optionName] = $optionValue;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getOptions() {
+        return $this->options;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName() {
+        $name = 'form';
+        if (array_key_exists('name', $this->options)) {
+            $name = $this->options['name'];
+        }
+
+        return $name;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSubmitted() {
+        $request = new KoncertoRequest();
+        $class = 'form';
+        if (array_key_exists('class', $this->options)) {
+            $class = strtolower($this->options['class']);
+        }
+        $form = $request->get($class);
+
+        return null !== $form && is_array($form);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getData() {
+        $request = new KoncertoRequest();
+        $class = 'form';
+        if (array_key_exists('class', $this->options)) {
+            $class = strtolower($this->options['class']);
+        }
+
+        return $request->get($class);
+    }
 }
 
 class KoncertoField
 {
+    /** @var ?KoncertoForm */
+    private $form = null;
     /** @var ?string */
     private $name = null;
     /** @var string */
@@ -263,6 +406,39 @@ class KoncertoField
     private $label = null;
     /** @var array<array-key, string> */
     private $options = array();
+
+    /**
+     * @param KoncertoForm $form
+     * @return KoncertoField
+     */
+    public function setForm($form) {
+        $this->form = $form;
+
+        return $this;
+    }
+
+    /**
+     * @return KoncertoForm
+     */
+    public function getForm() {
+        return $this->form;
+    }
+
+    /**
+     * @param ?string $key
+     * @return mixed
+     */
+    public function getData($key = null) {
+        $data = $this->form->getData();
+        if (null === $data) {
+            return null;
+        }
+        if (!array_key_exists($this->name, $data)) {
+            return null;
+        }
+
+        return $data[$this->name];
+    }
 
     /**
      * @param string $type
@@ -315,6 +491,10 @@ class KoncertoField
         return $this->label;
     }
 
+    public function getFormName() {
+        return 'form';
+    }
+
     /**
      * @param array<array-key, string> $options
      * @return KoncertoField
@@ -331,4 +511,8 @@ class KoncertoField
     public function getOptions() {
         return $this->options;
     }
+}
+
+class KoncertoEntity
+{
 }
