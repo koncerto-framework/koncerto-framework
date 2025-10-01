@@ -93,11 +93,11 @@ TinyButStrong syntax explanation:
 * `onload` : this will load the file when loading your template
 * `file` : the template file loaded (included; here: `_form.tbs.html`)
 * `rename`:
-    - inside `_form.tbs.html`, a field is identified by `field` keyword
+    - inside `_form.tbs.html`, a field is identified by a `field` keyword
     - this operation will rename the keyword with the fields defined in the `form` inside the controller
-    - it will also rename rename the keyword `option` with the form options
+    - it will also rename the keyword `option` with the form options
 * `getpart`:
-    - this will only copy the content of the `<form>` tag from the `_forms.tbs.html` template.
+    - this will only copy the content of the `<form>` tag from the `_forms.tbs.html` template
     - _fields will be displayed according to their type_
     - _other tags are ignored and reserved for internal use_
 
