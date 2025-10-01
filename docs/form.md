@@ -126,7 +126,7 @@ class MyController extends KoncertoController {
      */
     public function hello() {
         $form = new KoncertoForm();
-        $form->add((new KoncertoField())->setName('name')->setLabel('Your name'));
+        $form->add((new KoncertoField())->setName('yourName')->setLabel('Your name'));
 
         $name = '';
         if ($form->isSubmitted()) {
