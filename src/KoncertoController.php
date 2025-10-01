@@ -9,6 +9,7 @@ class KoncertoController
      * @param string $template
      * @param array<string, mixed> $context
      * @param array<string, string> $headers
+     * @return KoncertResponse
      */
     public function render($template, $context = array(), $headers = array()) {
         Koncerto::loadClass('clsTinyButStrong');
@@ -67,7 +68,12 @@ class KoncertoController
             $tbs->MergeField($key, $value);
         }
 
-        return $tbs->Show(false);
+        $response = new KoncertoResponse();
+        foreach ($headers as $headerName => $headerValue) {
+            $response->setHeader($headerName, $headerValue);
+        }
+
+        return $response->setContent($tbs->Show(false));
     }
 
     /**
