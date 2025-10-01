@@ -11,7 +11,7 @@ class KoncertoController
      * @param array<string, string> $headers
      */
     public function render($template, $context = array(), $headers = array()) {
-        require_once('tinybutstrong/tbs_class.php');
+        Koncerto::loadClass('clsTinyButStrong');
 
         $tbs = new clsTinyButStrong();
         $tbs->MethodsAllowed = true;

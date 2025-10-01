@@ -9,6 +9,30 @@ class Koncerto
     static $config = array();
 
     /**
+     * Use Koncerto from source with autoload
+     * @return void
+     */
+    public static function autoload() {
+        spl_autoload_register('Koncerto::loadClass');
+    }
+
+    /**
+     * Load class from source when using Koncerto with autoload
+     * @param string $className
+     * @return void
+     */
+    public static function loadClass($className) {
+        if ('clsTinyButStrong' === $className && !class_exists('clsTinyButStrong')) {
+            self::loadTBS();
+            return;
+        }
+
+        if (!class_exists($className)) {
+            require_once(dirname(__FILE__) . '/' . $className . '.php');
+        }
+    }
+
+    /**
      * @param array<string, mixed> $config
      * @return void
      */
@@ -60,5 +84,24 @@ class Koncerto
         }
 
         return $response->getContent();
+    }
+
+    /**
+     * @return void
+     */
+    private static function loadTBS() {
+        $tbsLocations = array(
+            dirname(__FILE__) . '/tbs_class.php',
+            dirname(__FILE__) . '/tinybutstrong/tbs_class.php',
+            dirname(__FILE__) . '/../tinybutstrong/tbs_class.php'
+        );
+
+        foreach ($tbsLocations as $tbsLocation) {
+            if (is_file($tbsLocation)) {
+                require_once($tbsLocation);
+
+                return;
+            }
+        }
     }
 }
