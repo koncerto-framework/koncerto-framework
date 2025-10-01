@@ -81,9 +81,13 @@ Helper class to prepare HTTP response.
 
 Helper class to render KoncertoResponse using TBS template engine.
 
+[(read more)](controller.md)
+
 ### KoncertoForm
 
 Helper class to define form to use with `_form.tbs.html` template.
+
+[(read more)](form.md)
 
 ### KoncertoField
 
