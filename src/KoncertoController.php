@@ -49,6 +49,12 @@ class KoncertoController
                     );
                     $tbs->MergeField($optionKey, $optionValue);
                 }
+                $optionKey = sprintf(
+                    '%s.%s',
+                    $key,
+                    'option'
+                );
+                $tbs->MergeField($optionKey, '');
                 $fieldKey = sprintf('%s.%s', $key, 'field');
                 $tbs->MergeBlock($fieldKey, $form->getFields());
                 foreach ($form->getFields() as $field) {

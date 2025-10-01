@@ -60,6 +60,10 @@ class KoncertoField
      * @return KoncertoField
      */
     public function setName($name) {
+        if ('name' === $name) {
+            throw new Exception(sprintf('KoncertoField::setName(%s) - "%s" is a reserved keyword', $name, $name));
+        }
+
         $this->name = $name;
 
         return $this;
