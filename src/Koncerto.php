@@ -92,6 +92,7 @@ class Koncerto
     private static function loadTBS() {
         $tbsLocations = array(
             dirname(__FILE__) . '/tbs_class.php',
+            dirname(__FILE__) . '/../tbs_class.php',
             dirname(__FILE__) . '/tinybutstrong/tbs_class.php',
             dirname(__FILE__) . '/../tinybutstrong/tbs_class.php'
         );
