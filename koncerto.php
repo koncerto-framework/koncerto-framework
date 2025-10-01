@@ -6,6 +6,41 @@
  */
 class Koncerto
 {
+    static $config = array();
+
+    /**
+     * @param array<string, mixed> $config
+     * @return void
+     */
+    public static function setConfig($config) {
+        Koncerto::$config = $config;
+    }
+
+    /**
+     * @param string $entry
+     * @return ?string
+     */
+    public static function getConfig($entry) {
+        $config = Koncerto::$config;
+
+        $path = explode('.', $entry);
+
+        while (false !== ($subentry = array_shift($path))) {
+            if (!is_array($config) || !array_key_exists($subentry, $config)) {
+                $config = null;
+
+                break;
+            }
+
+            $config = $config[$subentry];
+            if (0 === count($path)) {
+                break;
+            }
+        }
+
+        return $config;
+    }
+
     /**
      * Static function to return response from Koncerto Framework
      * @return string
@@ -167,6 +202,15 @@ class KoncertoRequest
         }
 
         return $_REQUEST[$argName];
+    }
+
+    /**
+     * @param string $argName
+     * @param mixed $argValue
+     * @return void
+     */
+    public function set($argName, $argValue) {
+        $_REQUEST[$argName] = $argValue;
     }
 }
 
@@ -344,6 +388,13 @@ class KoncertoForm
 
         $this->options[$optionName] = $optionValue;
 
+        if ('data' === $optionName) {
+            $request = new KoncertoRequest();
+            foreach ($optionValue as $key => $val) {
+                $request->set($key, $val);
+            }
+        }
+
         return $this;
     }
 
@@ -390,7 +441,45 @@ class KoncertoForm
             $class = strtolower($this->options['class']);
         }
 
-        return $request->get($class);
+        $data = $request->get($class);
+
+        if (null === $data || !is_array($data)) {
+            return null;
+        }
+
+        $entity = $this->getEntity();
+        if (null === $entity) {
+            return $data;
+        }
+
+        return $entity->hydrate($data);
+    }
+
+    /**
+     * @return ?KoncertoEntity
+     */
+    private function getEntity() {
+        if (!array_key_exists('class', $this->options)) {
+            return null;
+        }
+
+        $class = $this->options['class'];
+        $classFile = sprintf('_entity/%s.php', $class);
+        if (!is_file($classFile)) {
+            return null;
+        }
+
+        include_once($classFile);
+        if (!class_exists($class)) {
+            return null;
+        }
+
+        $entity = new $class();
+        if (!is_a($entity, 'KoncertoEntity')) {
+            return null;
+        }
+
+        return $entity;
     }
 }
 
@@ -433,6 +522,11 @@ class KoncertoField
         if (null === $data) {
             return null;
         }
+
+        if (is_a($data, 'KoncertoEntity')) {
+            $data = $data->serialize();
+        }
+
         if (!array_key_exists($this->name, $data)) {
             return null;
         }
@@ -515,4 +609,122 @@ class KoncertoField
 
 class KoncertoEntity
 {
+    /**
+     * @param array<string, mixed> $data
+     * @return KoncertoEntity
+     */
+    public function hydrate($data) {
+        $id = $this->getId();
+
+        $ref = new ReflectionClass($this);
+        $props = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
+
+        foreach ($props as $prop) {
+            $propName = $prop->getName();
+            $emptyKey = null !== $id && array_key_exists($id, $data) && empty($data[$propName]);
+            if (!$emptyKey && array_key_exists($propName, $data)) {
+                // @todo - convert type
+                $this->$propName = $data[$propName];
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function serialize() {
+        $obj = array();
+
+        $ref = new ReflectionClass($this);
+        $props = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
+
+        foreach ($props as $prop) {
+            $propName = $prop->getName();
+            $obj[$propName] = $this->$propName;
+        }
+
+        return $obj;
+    }
+
+    public function persist() {
+        $pdo = new PDO(Koncerto::getConfig('entityManager.default'));
+
+        $data = $this->serialize();
+        $fields = array_keys($data);
+        $placeholders = array_map(function ($field) { return ':' . $field; }, $fields);
+
+        $entityName = strtolower(get_class($this));
+
+        $id = $this->getId();
+        if (null === $id) {
+            return;
+        }
+
+        if (empty($data[$id])) {
+            $data[$id] = null;
+
+            $query = $pdo->prepare(
+                sprintf(
+                    'INSERT INTO %s (%s) VALUES (%s)',
+                    $entityName,
+                    implode(',', $fields),
+                    implode(',', $placeholders)
+                )
+            );
+        } else {
+            $updates = array_map(function ($field, $placeholder) {
+                return sprintf('%s = %s', $field, $placeholder);
+            }, $fields, $placeholders);
+
+            $query = $pdo->prepare(
+                sprintf(
+                    'UPDATE %s SET %s WHERE %s = %s',
+                    $entityName,
+                    implode(',', $updates),
+                    $id,
+                    $data[$id]
+                )
+            );
+        }
+
+        $query->execute($data);
+
+        $data = array();
+        if (!array_key_exists($id, $data) || empty($data[$id])) {
+            $data = array($id => $pdo->lastInsertId());
+        }
+
+        return $this->hydrate($data);
+    }
+
+    /**
+     * Get ID column from @internal comments
+     * @return ?string
+     */
+    private function getId() {
+        $ref = new ReflectionClass($this);
+        $props = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
+
+        foreach ($props as $prop) {
+            $comment = $prop->getDocComment();
+            if (false === $comment) {
+                $comment = '';
+            }
+            $lines = explode("\n", $comment);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                $line = trim(preg_replace('/^\*[ ]*/', '', $line));
+                if (1 === sscanf($line, '@internal %s', $json)) {
+                    $internal = (array)json_decode($json, true);
+                    if (!array_key_exists('key', $internal)) {
+                        return null;
+                    }
+
+                    return $prop->getName();
+                }
+            }
+        }
+    }
 }
