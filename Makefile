@@ -1,0 +1,2 @@
+koncerto:
+	php make.php
