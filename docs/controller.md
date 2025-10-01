@@ -87,7 +87,7 @@ class MyController extends KoncertoController {
 This method requires [TinyButStrong](https://www.tinybutstrong.com/) template engine.
 Be sure to include it in your project.
 
-The `render` method need a template file as first argument.
+The `render` method needs a template file as its first argument.
 
 Templates are stored (preferably) in a `_templates` folder and have a .tbs.html extension.
 

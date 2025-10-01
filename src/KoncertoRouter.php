@@ -30,6 +30,10 @@ class KoncertoRouter
      * @return void
      */
     private function getRoutes($url) {
+        if (!is_dir('_cache')) {
+            mkdir('_cache');
+        }
+
         if (0 === count($this->routes) && is_file('_cache/routes.json')) {
             $this->routes = (array)json_decode('_cache/routes.json', true);
         }
@@ -39,6 +43,9 @@ class KoncertoRouter
         }
 
         $d = '_controller/';
+        if (!is_dir($d)) {
+            mkdir($d);
+        }
         $dir = opendir($d);
         while ($f = readdir($dir)) {
             if (is_file($d . $f) && '.php' === strrchr($f, '.')) {
