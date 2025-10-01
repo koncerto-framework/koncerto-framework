@@ -1,0 +1,66 @@
+<form>
+    [field;block=begin]
+    <div class="field is-horizontal" [onshow;block=div;when [field.getType()]=='text']>
+        <div class="field-label is-normal">
+            <label class="label">[field.getLabel()]</label>
+        </div>
+        <div class="field-body">
+            <div class="field">
+                <p class="control">
+                    <input class="input" name="[option.class;noerr;ifempty=form;ope=lower][[field.getName()]]"
+                    value="[field.getData()]" type="[field.getType()]" />
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="field is-horizontal" [onshow;block=div;when [field.getType()]=='email']>
+        <div class="field-label is-normal">
+            <label class="label">[field.getLabel()]</label>
+        </div>
+        <div class="field-body">
+            <div class="field">
+                <p class="control">
+                    <input class="input" name="[option.class;noerr;ifempty=form;ope=lower][[field.getName()]]"
+                    value="[field.getData()]" type="[field.getType()]" />
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="field is-horizontal" [onshow;block=div;when [field.getType()]=='textarea']>
+        <div class="field-label is-normal">
+            <label class="label">[field.getLabel()]</label>
+        </div>
+        <div class="field-body">
+            <div class="field">
+                <p class="control">
+                    <textarea name="[option.class;noerr;ifempty=form;ope=lower][[field.getName()]]"
+                    class="textarea">[field.getData()]</textarea>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="field is-horizontal" [onshow;block=div;when [field.getType()]=='select']>
+        <div class="field-label is-normal">
+            <label class="label">[field.getLabel()]</label>
+        </div>
+        <div class="field-body">
+            <div class="field">
+                <p class="control">
+                    <div class="select">
+                        [onload;file=_form.tbs.html;rename form=[field.getForm().getName()], name=[field.getName()], select=[field.getForm().getName()].field.[field.getName()].options;getpart=(select)]
+                    </div>
+                </p>
+            </div>
+        </div>
+    </div>
+    <input class="input" name="[option.class;noerr;ifempty=form;ope=lower][[field.getName()]]"
+    value="[field.getData()]" type="[field.getType()]" [onshow;block=input;when [field.getType()]=='hidden'] />
+    [field;block=end]
+</form>
+
+<select name="[onshow..tplvars.forms[form].getOptions().class;noerr;ifempty=form;ope=lower][name]">
+    <option value="[select.key;block=option]"
+    [onshow..tplvars.data[form].field[name];noerr;if [val]=[select.val];then 'SELECTED';else '']>
+        [select.val]
+    </option>
+</select>

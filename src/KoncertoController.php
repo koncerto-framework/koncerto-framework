@@ -17,6 +17,10 @@ class KoncertoController
         $tbs->MethodsAllowed = true;
         $tbs->ObjectRef = array();
         $tbs->ObjectRef['request'] = new KoncertoRequest();
+        $tbs->SetOption('include_path', dirname(__FILE__) . '/_templates');
+        $tbs->SetOption('include_path', dirname(__FILE__) . '/../_templates');
+        $tbs->SetOption('include_path', dirname(__FILE__) . '/..');
+        $tbs->SetOption('include_path', dirname(__FILE__));
         $tbs->LoadTemplate($template);
 
         foreach ($context as $key => $value) {
