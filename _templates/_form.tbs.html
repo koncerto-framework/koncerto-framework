@@ -60,7 +60,7 @@
 
 <select name="[onshow..tplvars.forms[form].getOptions().class;noerr;ifempty=form;ope=lower][name]">
     <option value="[select.key;block=option]"
-    [onshow..tplvars.data[form].field[name];noerr;if [val]=[select.val];then 'SELECTED';else '']>
+    [onshow..tplvars.data[form].field[name];noerr;if [val]=[select.key];then 'SELECTED';else '']>
         [select.val]
     </option>
 </select>

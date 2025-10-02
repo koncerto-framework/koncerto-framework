@@ -19,8 +19,36 @@ class KoncertoEntity
             $propName = $prop->getName();
             $emptyKey = null !== $id && array_key_exists($id, $data) && empty($data[$propName]);
             if (!$emptyKey && array_key_exists($propName, $data)) {
-                // @todo - convert type
-                $this->$propName = $data[$propName];
+                $comment = $prop->getDocComment();
+                if (false === $comment) {
+                    $comment = '';
+                }
+                $propType = $this->getType($comment);
+                $value = $data[$propName];
+                if ('?' === substr($propType, 0, 1)) {
+                    $propType = substr($propType, 1);
+                    if (empty($value)) {
+                        $value = null;
+                        $propType = 'null';
+                    }
+                }
+                switch ($propType) {
+                    case 'bool':
+                    case 'boolean':
+                        $value = filter_var($value, FILTER_VALIDATE_BOOL);
+                        break;
+                    case 'float':
+                        $value = floatval($value);
+                        break;
+                    case 'int':
+                    case 'integer':
+                        $value = intval($value);
+                        break;
+                    case 'string':
+                        $value = strval($value);
+                        break;
+                }
+                $this->$propName = $value;
             }
         }
 
@@ -125,5 +153,26 @@ class KoncertoEntity
                 }
             }
         }
+    }
+
+    /**
+     * Get column type from @var comments
+     * @param string $comment
+     * @return string
+     */
+    private function getType($comment) {
+        $type = 'string';
+
+        $lines = explode("\n", $comment);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (2 === sscanf($line, "%*[^@]@var %[^\n]s", $varType)) {
+                $type = (string)$varType;
+
+                break;
+            }
+        }
+
+        return $type;
     }
 }
