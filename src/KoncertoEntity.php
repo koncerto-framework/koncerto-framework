@@ -45,6 +45,7 @@ class KoncertoEntity
     }
 
     public function persist() {
+        // @todo - get entityManager from entity
         $pdo = new PDO(Koncerto::getConfig('entityManager.default'));
 
         $data = $this->serialize();
@@ -111,9 +112,8 @@ class KoncertoEntity
             $lines = explode("\n", $comment);
             foreach ($lines as $line) {
                 $line = trim($line);
-                $line = trim(preg_replace('/^\*[ ]*/', '', $line));
-                if (1 === sscanf($line, '@internal %s', $json)) {
-                    $internal = (array)json_decode($json, true);
+                if (2 === sscanf($line, "%*[^@]@internal %[^\n]s", $json)) {
+                    $internal = (array)json_decode((string)$json, true);
                     if (!array_key_exists('key', $internal)) {
                         return null;
                     }
