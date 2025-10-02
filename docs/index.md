@@ -101,6 +101,41 @@ Helper class to define entities and ORM.
 
 Koncerto is in early stage of developement. Nothing is ready for production. Most features are missing.
 
+## From Symfony to Koncerto
+
+If you used Symfony, you will find many similarities with Koncerto.
+
+Koncerto stays compatible with PHP 5 to 8, this is why there is no attributes or enums.
+
+Instead of new PHP attributes, this framework uses PHPdoc annotations.
+
+No special annotations are added, Koncerto uses only standard annotations.
+
+## From Twig to TinyButStrong
+
+Koncerto uses TinyButStrong (TBS) for its template engine.
+
+It is very light, PHP 5 to 8 compatible and HTML compliant.
+
+There is no such thing as `set`, `if` or `for` statements. Instead, TBS uses `tplvars`, `fields` and `blocks`.
+
+### Variables
+
+| Twig | TBS |
+|-|-|
+|`{% set lang = 'fr' %}`|`[onload;tplvars;lang='fr']`|
+
+### Conditions
+
+| Twig | TBS |
+|-|-|
+|`{% if lang = 'fr' %}Bienvenue{% endif %}`|`[onshow;block=begin;when [var..tplvars.lang]='fr']Bienvenue[onshow;block=end]`|
+
+### Loops
+| Twig | TBS |
+|-|-|
+|`<ul>{% for lang in langs %}<li>{{ lang }}</li>{% endfor %}</ul>`|`<ul><li>[langs.val;block=li]</li></ul>`|
+
 ## To-do list
 
 * Framework classes : ongoing
