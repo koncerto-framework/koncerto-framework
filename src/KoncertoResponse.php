@@ -48,7 +48,7 @@ class KoncertoResponse
     }
 
     /**
-     * @retrun string
+     * @return string
      */
     public function getContent() {
         return $this->content;

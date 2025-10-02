@@ -44,8 +44,11 @@ class KoncertoEntity
         return $obj;
     }
 
+    /**
+     * @return KoncertoEntity
+     */
     public function persist() {
-        // @todo - get entityManager from entity
+        // @todo - get entityName and entityManager from entity internal annotation
         $pdo = new PDO(Koncerto::getConfig('entityManager.default'));
 
         $data = $this->serialize();
