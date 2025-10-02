@@ -129,12 +129,14 @@ There is no such thing as `set`, `if` or `for` statements. Instead, TBS uses `tp
 
 | Twig | TBS |
 |-|-|
-|`{% if lang = 'fr' %}Bienvenue{% endif %}`|`[onshow;block=begin;when [var..tplvars.lang]='fr']Bienvenue[onshow;block=end]`|
+|`{% if lang = 'fr' %}Bienvenue{% endif %}`|`[onshow;block=begin;when [var..tplvars.lang]='fr']`<br>`Bienvenue[onshow;block=end]`|
+|`{{ lang == 'fr' ? 'Bienvenue' : '' }}`|`[onshow..tplvars.lang;if [val]='fr';then 'Bienvenue';else '']`|
 
 ### Loops
 | Twig | TBS |
 |-|-|
-|`<ul>{% for lang in langs %}<li>{{ lang }}</li>{% endfor %}</ul>`|`<ul><li>[langs.val;block=li]</li></ul>`|
+|`<ul>{% for lang in langs %}`<br>`<li>{{ lang }}</li>{% endfor %}</ul>`|`<ul><li>[langs.val;block=li]</li></ul>`|
+|
 
 ## To-do list
 
