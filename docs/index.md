@@ -60,6 +60,7 @@ echo Koncerto::response();
 * KoncertoForm
 * KoncertoField
 * KoncertoEntity
+* KoncertoEnum
 
 ### Koncerto
 
@@ -96,6 +97,49 @@ Helper class to define form fields.
 ### KoncertoEntity
 
 Helper class to define entities and ORM.
+
+### KoncertoEnum
+
+Alternative class for enumerations on older PHP versions.
+
+Koncerto enumeration are defined using annotations.
+
+Automatic values example :
+
+```php
+<?php
+
+/**
+ * Origin enumeration (None, Google, etc)
+ * @method int None
+ * @method int Google
+ * @method int Friend
+ */
+class Origin extends KoncertoEnum
+{
+}
+
+```
+
+String values example
+```php
+<?php
+
+/**
+ * Language enumeration (fr, nl, etc)
+ * @method string Francais string "fr"
+ * @method string Nederlands string "nl"
+ * @method string English string "en"
+ */
+class Lang extends KoncertoEnum
+{
+}
+
+```
+
+* Each case is a method that returns its value (e.g. `Lang::French()` returns `fr`)
+* Cases can be obtained using `cases` method (e.g. `Lang::cases()` returns an array)
+* A case value can be converted to its name using `from` method (e.g. `Lang::from('fr')` returns `Francais`)
 
 ## Project status
 
