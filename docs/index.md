@@ -145,6 +145,8 @@ class Lang extends KoncertoEnum
 
 Koncerto is in early stage of developement. Nothing is ready for production. Most features are missing.
 
+Koncerto has PSR-12 and PHPstan level 9 code quality with very few exceptions (no namespace, sscanf, etc).
+
 ## From Symfony to Koncerto
 
 If you used Symfony, you will find many similarities with Koncerto.
@@ -180,7 +182,6 @@ There is no such thing as `set`, `if` or `for` statements. Instead, TBS uses `tp
 | Twig | TBS |
 |-|-|
 |`<ul>{% for lang in langs %}`<br>`<li>{{ lang }}</li>{% endfor %}</ul>`|`<ul><li>[langs.val;block=li]</li></ul>`|
-|
 
 ## To-do list
 
