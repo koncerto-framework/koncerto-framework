@@ -1,20 +1,27 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * This class allows to create enumerations to use with entities and forms
  * Reserved keywords : cases, from
  */
-class KoncertoEnum {
-    /** @var array<array-key, mixed> */
+class KoncertoEnum
+{
+    /**
+     * @var array<array-key, bool|float|int|string|null>
+     */
     private static $cases = array();
 
     /**
      * Return the int value of the enum case
-     * @param string $name
-     * @param array<mixed> $arguments
+     *
+     * @param  string       $name
+     * @param  array<mixed> $arguments
      * @return mixed
      */
-    public static function __callStatic($name, $arguments = array()) {
+    public static function __callStatic($name, $arguments = array())
+    {
         if (count($arguments) > 0) {
             return null;
         }
@@ -32,10 +39,12 @@ class KoncertoEnum {
 
     /**
      * Return the case name from the value
-     * @param mixed $value
-     * @return ?string
+     *
+     * @param  int|string $value
+     * @return bool|float|int|string|null
      */
-    public static function from($value) {
+    public static function from($value)
+    {
         self::parseCases();
 
         if (!array_key_exists($value, self::$cases)) {
@@ -47,9 +56,11 @@ class KoncertoEnum {
 
     /**
      * Return the list of cases as name => value
-     * @return array<int, string>
+     *
+     * @return array<array-key, bool|float|int|string|null>
      */
-    public static function cases() {
+    public static function cases()
+    {
         self::parseCases();
 
         return self::$cases;
@@ -57,9 +68,11 @@ class KoncertoEnum {
 
     /**
      * Extract cases from "method" annotations
+     *
      * @return void
      */
-    private static function parseCases() {
+    private static function parseCases()
+    {
         $class = new ReflectionClass(get_called_class());
         $comment = $class->getDocComment();
         if (false === $comment) {
@@ -69,9 +82,14 @@ class KoncertoEnum {
         self::$cases = array();
         $lines = explode("\n", $comment);
         foreach ($lines as $line) {
+            // @phpstan-ignore argument.sscanf
             if (5 === sscanf($line, "%*[^@]@method %s %s %s %[^\n]s", $type, $name, $type, $value)) {
-                self::$cases[json_decode($value)] = $name;
-            } else if (2 === sscanf($line, "%*[^@]@method int %[^\n]s", $name)) {
+                $key = json_decode((string)$value);
+                if (is_string($key) || is_numeric($key)) {
+                    self::$cases[$key] = $name;
+                }
+            // @phpstan-ignore argument.sscanf
+            } elseif (2 === sscanf($line, "%*[^@]@method int %[^\n]s", $name)) {
                 array_push(self::$cases, $name);
             }
         }

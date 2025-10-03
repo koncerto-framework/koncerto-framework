@@ -1,15 +1,18 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * Helper class for ORM
  */
 class KoncertoEntity
 {
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, bool|float|int|string|null> $data
      * @return KoncertoEntity
      */
-    public function hydrate($data) {
+    public function hydrate($data)
+    {
         $id = $this->getId();
 
         $ref = new ReflectionClass($this);
@@ -56,9 +59,10 @@ class KoncertoEntity
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, bool|float|int|string|null>
      */
-    public function serialize() {
+    public function serialize()
+    {
         $obj = array();
 
         $ref = new ReflectionClass($this);
@@ -73,21 +77,31 @@ class KoncertoEntity
     }
 
     /**
-     * @return KoncertoEntity
+     * @return ?KoncertoEntity
      */
-    public function persist() {
+    public function persist()
+    {
         // @todo - get entityName and entityManager from entity internal annotation
-        $pdo = new PDO(Koncerto::getConfig('entityManager.default'));
+        $dsn = Koncerto::getConfig('entityManager.default');
+        if (null === $dsn) {
+            return null;
+        }
+        $pdo = new PDO($dsn);
 
         $data = $this->serialize();
         $fields = array_keys($data);
-        $placeholders = array_map(function ($field) { return ':' . $field; }, $fields);
+        $placeholders = array_map(
+            function ($field) {
+                return ':' . $field;
+            },
+            $fields
+        );
 
         $entityName = strtolower(get_class($this));
 
         $id = $this->getId();
         if (null === $id) {
-            return;
+            return null;
         }
 
         if (empty($data[$id])) {
@@ -102,9 +116,13 @@ class KoncertoEntity
                 )
             );
         } else {
-            $updates = array_map(function ($field, $placeholder) {
-                return sprintf('%s = %s', $field, $placeholder);
-            }, $fields, $placeholders);
+            $updates = array_map(
+                function ($field, $placeholder) {
+                    return sprintf('%s = %s', $field, $placeholder);
+                },
+                $fields,
+                $placeholders
+            );
 
             $query = $pdo->prepare(
                 sprintf(
@@ -119,9 +137,14 @@ class KoncertoEntity
 
         $query->execute($data);
 
-        $data = array();
         if (!array_key_exists($id, $data) || empty($data[$id])) {
-            $data = array($id => $pdo->lastInsertId());
+            if (false !== $pdo->lastInsertId()) {
+                $data = array($id => $pdo->lastInsertId());
+            } else {
+                $data = array();
+            }
+        } else {
+            $data = array();
         }
 
         return $this->hydrate($data);
@@ -129,9 +152,11 @@ class KoncertoEntity
 
     /**
      * Get ID column from @internal comments
+     *
      * @return ?string
      */
-    private function getId() {
+    private function getId()
+    {
         $ref = new ReflectionClass($this);
         $props = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
 
@@ -143,6 +168,7 @@ class KoncertoEntity
             $lines = explode("\n", $comment);
             foreach ($lines as $line) {
                 $line = trim($line);
+                // @phpstan-ignore argument.sscanf
                 if (2 === sscanf($line, "%*[^@]@internal %[^\n]s", $json)) {
                     $internal = (array)json_decode((string)$json, true);
                     if (!array_key_exists('key', $internal)) {
@@ -153,19 +179,24 @@ class KoncertoEntity
                 }
             }
         }
+
+        return null;
     }
 
     /**
      * Get column type from @var comments
-     * @param string $comment
+     *
+     * @param  string $comment
      * @return string
      */
-    private function getType($comment) {
+    private function getType($comment)
+    {
         $type = 'string';
 
         $lines = explode("\n", $comment);
         foreach ($lines as $line) {
             $line = trim($line);
+            // @phpstan-ignore argument.sscanf
             if (2 === sscanf($line, "%*[^@]@var %[^\n]s", $varType)) {
                 $type = (string)$varType;
 

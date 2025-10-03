@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Makefile script to generate bundled koncerto.php
+ */
+
 if (!is_dir('dist')) {
     mkdir('dist');
 }
@@ -11,7 +15,7 @@ $files = scandir('./src/');
 
 foreach ($files as $file) {
     if ('.php' === strrchr($file, '.')) {
-        $php = file_get_contents('./src/' . $file);
+        $php = (string)file_get_contents('./src/' . $file);
         if ('<?php' === substr($php, 0, 5)) {
             $php = substr($php, 5);
         }

@@ -1,54 +1,67 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * Koncerto Framework
  * This is Koncerto Framework main class
  */
 class Koncerto
 {
-    static $config = array();
+    /**
+     * @var array<string, string|array>
+    */
+    // @phpstan-ignore missingType.iterableValue
+    private static $config = array();
 
     /**
      * Use Koncerto from source with autoload
+     *
      * @return void
      */
-    public static function autoload() {
+    public static function autoload()
+    {
         spl_autoload_register('Koncerto::loadClass');
     }
 
     /**
      * Load class from source when using Koncerto with autoload
-     * @param string $className
+     *
+     * @param  string $className
      * @return void
      */
-    public static function loadClass($className) {
+    public static function loadClass($className)
+    {
         if ('clsTinyButStrong' === $className && !class_exists('clsTinyButStrong')) {
             self::loadTBS();
             return;
         }
 
         if (!class_exists($className)) {
-            require_once(dirname(__FILE__) . '/' . $className . '.php');
+            include_once dirname(__FILE__) . '/' . $className . '.php';
         }
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, string|array<string, string>> $config
      * @return void
      */
-    public static function setConfig($config) {
+    public static function setConfig($config)
+    {
         Koncerto::$config = $config;
     }
 
     /**
-     * @param string $entry
+     * @param  string $entry
      * @return ?string
      */
-    public static function getConfig($entry) {
+    public static function getConfig($entry)
+    {
         $config = Koncerto::$config;
 
         $path = explode('.', $entry);
 
+        // @phpstan-ignore notIdentical.alwaysTrue
         while (false !== ($subentry = array_shift($path))) {
             if (!is_array($config) || !array_key_exists($subentry, $config)) {
                 $config = null;
@@ -62,14 +75,16 @@ class Koncerto
             }
         }
 
-        return $config;
+        return is_string($config) ? $config : null;
     }
 
     /**
      * Static function to return response from Koncerto Framework
+     *
      * @return string
      */
-    public static function response() {
+    public static function response()
+    {
         $request = new KoncertoRequest();
         $router = new KoncertoRouter();
         $match = $router->match($request->getPathInfo());
@@ -89,7 +104,8 @@ class Koncerto
     /**
      * @return void
      */
-    private static function loadTBS() {
+    private static function loadTBS()
+    {
         $tbsLocations = array(
             dirname(__FILE__) . '/tbs_class.php',
             dirname(__FILE__) . '/../tbs_class.php',
@@ -99,7 +115,7 @@ class Koncerto
 
         foreach ($tbsLocations as $tbsLocation) {
             if (is_file($tbsLocation)) {
-                require_once($tbsLocation);
+                include_once $tbsLocation;
 
                 return;
             }

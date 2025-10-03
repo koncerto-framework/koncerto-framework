@@ -1,50 +1,69 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * Helper class to generate form fields based on
  * Template engine and _form.tbs.html template
  */
 class KoncertoField
 {
-    /** @var ?KoncertoForm */
+    /**
+     * @var ?KoncertoForm
+     */
     private $form = null;
-    /** @var ?string */
+    /**
+     * @var ?string
+     */
     private $name = null;
-    /** @var string */
+    /**
+     * @var string
+     */
     private $type = 'text';
-    /** @var ?string */
+    /**
+     * @var ?string
+     */
     private $label = null;
-    /** @var array<array-key, string> */
+    /**
+     * @var array<array-key, string>
+     */
     private $options = array();
 
     /**
-     * @param KoncertoForm $form
+     * @param  KoncertoForm $form
      * @return KoncertoField
      */
-    public function setForm($form) {
+    public function setForm($form)
+    {
         $this->form = $form;
 
         return $this;
     }
 
     /**
-     * @return KoncertoForm
+     * @return ?KoncertoForm
      */
-    public function getForm() {
+    public function getForm()
+    {
         return $this->form;
     }
 
     /**
-     * @param ?string $key
+     * @param  ?string $key
      * @return mixed
      */
-    public function getData($key = null) {
+    public function getData($key = null)
+    {
+        if (null === $this->form || null === $this->name) {
+            return null;
+        }
+
         $data = $this->form->getData();
         if (null === $data) {
             return null;
         }
 
-        if (is_a($data, 'KoncertoEntity')) {
+        if (!is_array($data)) {
             $data = $data->serialize();
         }
 
@@ -56,10 +75,11 @@ class KoncertoField
     }
 
     /**
-     * @param string $type
+     * @param  string $name
      * @return KoncertoField
      */
-    public function setName($name) {
+    public function setName($name)
+    {
         if ('name' === $name) {
             throw new Exception(sprintf('KoncertoField::setName(%s) - "%s" is a reserved keyword', $name, $name));
         }
@@ -70,17 +90,19 @@ class KoncertoField
     }
 
     /**
-     * @return string
+     * @return ?string
      */
-    public function getName() {
+    public function getName()
+    {
         return $this->name;
     }
 
     /**
-     * @param string $type
+     * @param  string $type
      * @return KoncertoField
      */
-    public function setType($type) {
+    public function setType($type)
+    {
         $this->type = $type;
 
         return $this;
@@ -89,15 +111,17 @@ class KoncertoField
     /**
      * @return string
      */
-    public function getType() {
+    public function getType()
+    {
         return $this->type;
     }
 
     /**
-     * @param string $label
+     * @param  string $label
      * @return KoncertoField
      */
-    public function setLabel($label) {
+    public function setLabel($label)
+    {
         $this->label = $label;
 
         return $this;
@@ -106,19 +130,17 @@ class KoncertoField
     /**
      * @return ?string
      */
-    public function getLabel() {
+    public function getLabel()
+    {
         return $this->label;
     }
 
-    public function getFormName() {
-        return 'form';
-    }
-
     /**
-     * @param array<array-key, string> $options
+     * @param  array<array-key, string> $options
      * @return KoncertoField
      */
-    public function setOptions($options) {
+    public function setOptions($options)
+    {
         $this->options = $options;
 
         return $this;
@@ -127,7 +149,8 @@ class KoncertoField
     /**
      * @return array<array-key, string>
      */
-    public function getOptions() {
+    public function getOptions()
+    {
         return $this->options;
     }
 }

@@ -1,17 +1,20 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  *  Base (and Helper) class for Koncerto controllers
  */
 class KoncertoController
 {
     /**
-     * @param string $template
-     * @param array<string, mixed> $context
-     * @param array<string, string> $headers
-     * @return KoncertResponse
+     * @param  string                $template
+     * @param  array<string, mixed>  $context
+     * @param  array<string, string> $headers
+     * @return KoncertoResponse
      */
-    public function render($template, $context = array(), $headers = array()) {
+    public function render($template, $context = array(), $headers = array())
+    {
         Koncerto::loadClass('clsTinyButStrong');
 
         $tbs = new clsTinyButStrong();
@@ -29,8 +32,10 @@ class KoncertoController
                 $tbs->MergeBlock($key, 'array', $value);
                 continue;
             }
-            if (is_a($value, 'KoncertoForm')) {
-                /** @var KoncertoForm */
+            if (is_object($value) && is_a($value, 'KoncertoForm')) {
+                /**
+                 * @var KoncertoForm
+                 */
                 $form = $value;
                 $form->setOption('name', $key);
                 $tbs->TplVars[sprintf('forms[%s]', $key)] = $form;
@@ -83,12 +88,13 @@ class KoncertoController
     }
 
     /**
-     * @param array<array-key, mixed> $data
-     * @return KoncertResponse
+     * @param  array<array-key, mixed> $data
+     * @return KoncertoResponse
      */
-    public function json($data) {
+    public function json($data)
+    {
         return (new KoncertoResponse())
             ->setHeader('Content-type', 'application/json')
-            ->setContent(json_encode($data));
+            ->setContent((string)json_encode($data));
     }
 }

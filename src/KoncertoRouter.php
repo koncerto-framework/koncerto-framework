@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * Routing class
  * Koncerto matches KoncertoController classes from _controller folder
@@ -7,15 +9,19 @@
  */
 class KoncertoRouter
 {
-    /** @var array<string, string> */
+    /**
+     * @var array<string, string>
+     */
     private $routes = array();
 
     /**
      * Returns KoncertoController::action for the specified url (pathInfo)
-     * @param string url
+     *
+     * @param  string $url
      * @return ?string
      */
-    public function match($url) {
+    public function match($url)
+    {
         $this->getRoutes($url);
 
         if (array_key_exists($url, $this->routes)) {
@@ -26,10 +32,11 @@ class KoncertoRouter
     }
 
     /**
-     * @param $url
+     * @param string $url
      * @return void
      */
-    private function getRoutes($url) {
+    private function getRoutes($url)
+    {
         if (!is_dir('_cache')) {
             mkdir('_cache');
         }
@@ -46,10 +53,15 @@ class KoncertoRouter
         if (!is_dir($d)) {
             mkdir($d);
         }
+
         $dir = opendir($d);
+        if (false === $dir) {
+            return;
+        }
+
         while ($f = readdir($dir)) {
             if (is_file($d . $f) && '.php' === strrchr($f, '.')) {
-                include_once($d . $f);
+                include_once $d . $f;
                 $className = str_replace('.php', '', $f);
                 if (class_exists($className)) {
                     if (is_subclass_of($className, 'KoncertoController')) {
@@ -66,11 +78,14 @@ class KoncertoRouter
     }
 
     /**
-     * @param string $className
+     * @param  class-string $className
      * @return array<string, string>
      */
-    private function getControllerRoutes($className) {
-        /** @var array<string, string> */
+    private function getControllerRoutes($className)
+    {
+        /**
+          * @var array<string, string>
+          */
         $routes = array();
         $methods = (new ReflectionClass($className))->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
@@ -95,13 +110,15 @@ class KoncertoRouter
     }
 
     /**
-     * @param string $comment
+     * @param  string $comment
      * @return ?string
      */
-    public function getControllerRoute($comment) {
+    public function getControllerRoute($comment)
+    {
         $lines = explode("\n", $comment);
         foreach ($lines as $line) {
             $line = trim($line);
+            // @phpstan-ignore argument.sscanf
             if (2 === sscanf($line, "%*[^@]@internal %[^\n]s", $json)) {
                 $internal = (array)json_decode((string)$json, true);
                 if (!array_key_exists('route', $internal)) {

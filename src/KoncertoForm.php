@@ -1,22 +1,29 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * Helper class to generate and submit forms
  * Requires template engine and _form.tbs.html template
  */
 class KoncertoForm
 {
-    /** @var KoncertoField[] */
+    /**
+     * @var KoncertoField[]
+     */
     private $fields = array();
 
-    /** @var array<string, mixed> */
+    /**
+     * @var array<string, bool|float|int|string|null|array<array-key, bool|float|int|string|null>>
+     */
     private $options = array();
 
     /**
-     * @param KoncertoField $field
+     * @param  KoncertoField $field
      * @return KoncertoForm
      */
-    public function add($field) {
+    public function add($field)
+    {
         array_push($this->fields, $field);
         $field->setForm($this);
 
@@ -26,16 +33,18 @@ class KoncertoForm
     /**
      * @return KoncertoField[]
      */
-    public function getFields() {
+    public function getFields()
+    {
         return $this->fields;
     }
 
     /**
-     * @param string $optionName
-     * @param ?mixed $optionValue
+     * @param  string $optionName
+     * @param  bool|float|int|string|null|array<array-key, bool|float|int|string|null> $optionValue
      * @return KoncertoForm
      */
-    public function setOption($optionName, $optionValue = null) {
+    public function setOption($optionName, $optionValue = null)
+    {
         $optionName = strtolower(($optionName));
 
         if (null === $optionValue && array_key_exists($optionName, $this->options)) {
@@ -46,7 +55,7 @@ class KoncertoForm
 
         $this->options[$optionName] = $optionValue;
 
-        if ('data' === $optionName) {
+        if ('data' === $optionName && is_array($optionValue)) {
             $request = new KoncertoRequest();
             foreach ($optionValue as $key => $val) {
                 $request->set($key, $val);
@@ -59,29 +68,32 @@ class KoncertoForm
     /**
      * @return array<string, mixed>
      */
-    public function getOptions() {
+    public function getOptions()
+    {
         return $this->options;
     }
 
     /**
      * @return string
      */
-    public function getName() {
+    public function getName()
+    {
         $name = 'form';
-        if (array_key_exists('name', $this->options)) {
+        if (array_key_exists('name', $this->options) && !is_array($this->options['name'])) {
             $name = $this->options['name'];
         }
 
-        return $name;
+        return (string)$name;
     }
 
     /**
      * @return bool
      */
-    public function isSubmitted() {
+    public function isSubmitted()
+    {
         $request = new KoncertoRequest();
         $class = 'form';
-        if (array_key_exists('class', $this->options)) {
+        if (array_key_exists('class', $this->options) && is_string($this->options['class'])) {
             $class = strtolower($this->options['class']);
         }
         $form = $request->get($class);
@@ -90,12 +102,13 @@ class KoncertoForm
     }
 
     /**
-     * @return mixed
+     * @return KoncertoEntity|array<string, bool|float|int|string|null>|null
      */
-    public function getData() {
+    public function getData()
+    {
         $request = new KoncertoRequest();
         $class = 'form';
-        if (array_key_exists('class', $this->options)) {
+        if (array_key_exists('class', $this->options) && is_string($this->options['class'])) {
             $class = strtolower($this->options['class']);
         }
 
@@ -116,8 +129,9 @@ class KoncertoForm
     /**
      * @return ?KoncertoEntity
      */
-    private function getEntity() {
-        if (!array_key_exists('class', $this->options)) {
+    private function getEntity()
+    {
+        if (!array_key_exists('class', $this->options) || !is_string($this->options['class'])) {
             return null;
         }
 
@@ -127,7 +141,7 @@ class KoncertoForm
             return null;
         }
 
-        include_once($classFile);
+        include_once $classFile;
         if (!class_exists($class)) {
             return null;
         }

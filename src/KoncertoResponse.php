@@ -1,22 +1,29 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * Helper class to prepare response
  */
 class KoncertoResponse
 {
-    /** @var array<string, string> */
+    /**
+     * @var array<string, string>
+     */
     private $headers = array();
 
-    /** @var ?string */
+    /**
+     * @var ?string
+     */
     private $content = null;
 
     /**
-     * @param string $headerName
-     * @param ?string $headerValue
+     * @param  string  $headerName
+     * @param  ?string $headerValue
      * @return KoncertoResponse
      */
-    public function setHeader($headerName, $headerValue = null) {
+    public function setHeader($headerName, $headerValue = null)
+    {
         $headerName = strtolower(($headerName));
 
         if (null === $headerValue && array_key_exists($headerName, $this->headers)) {
@@ -25,7 +32,7 @@ class KoncertoResponse
             return $this;
         }
 
-        $this->headers[$headerName] = $headerValue;
+        $this->headers[$headerName] = (string)$headerValue;
 
         return $this;
     }
@@ -33,15 +40,17 @@ class KoncertoResponse
     /**
      * @return array<string, string>
      */
-    public function getHeaders() {
+    public function getHeaders()
+    {
         return $this->headers;
     }
 
     /**
-     * @param ?string $content
+     * @param  ?string $content
      * @return KoncertoResponse
      */
-    public function setContent($content) {
+    public function setContent($content)
+    {
         $this->content = $content;
 
         return $this;
@@ -50,7 +59,8 @@ class KoncertoResponse
     /**
      * @return string
      */
-    public function getContent() {
-        return $this->content;
+    public function getContent()
+    {
+        return (string)$this->content;
     }
 }
