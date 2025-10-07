@@ -6,4 +6,4 @@ The main concept is to have a light PHP framework in a single PHP script.
 
 Koncerto uses TinyButStrong for its template engine.
 
-[(read more)](docs/index.md)
+[(read more)](https://github.com/koncerto-framework/koncerto-framework/wiki/Introduction)
