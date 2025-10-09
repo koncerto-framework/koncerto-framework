@@ -8,6 +8,8 @@
 class KoncertoEntity
 {
     /**
+     * Instantiate entity from array
+     *
      * @param  array<string, bool|float|int|string|null> $data
      * @return KoncertoEntity
      */
@@ -59,6 +61,8 @@ class KoncertoEntity
     }
 
     /**
+     * Transform entity to array
+     *
      * @return array<string, bool|float|int|string|null>
      */
     public function serialize()
@@ -77,6 +81,8 @@ class KoncertoEntity
     }
 
     /**
+     * Perist entity (create or update)
+     *
      * @return ?KoncertoEntity
      */
     public function persist()
@@ -126,11 +132,11 @@ class KoncertoEntity
 
             $query = $pdo->prepare(
                 sprintf(
-                    'UPDATE %s SET %s WHERE %s = %s',
+                    'UPDATE %s SET %s WHERE %s = :%s',
                     $entityName,
                     implode(',', $updates),
                     $id,
-                    $data[$id]
+                    $id
                 )
             );
         }
@@ -148,6 +154,115 @@ class KoncertoEntity
         }
 
         return $this->hydrate($data);
+    }
+
+    /**
+     * Remove entity
+     *
+     * @return boolean
+     */
+    public function remove()
+    {
+        // @todo - get entityName and entityManager from entity internal annotation
+        $dsn = Koncerto::getConfig('entityManager.default');
+        if (null === $dsn) {
+            return null;
+        }
+        $pdo = new PDO($dsn);
+
+        $data = $this->serialize();
+
+        $entityName = strtolower(get_class($this));
+
+        $id = $this->getId();
+        if (null === $id) {
+            return null;
+        }
+
+        $query = $pdo->prepare(
+            sprintf(
+                'DELETE FROM %s WHERE %s = :%s',
+                $entityName,
+                $id,
+                $id
+            )
+        );
+
+        return $query->execute(array($id => $data[$id]));
+    }
+
+    /**
+     * Find entities by class and primary key or criterias
+     *
+     * @param class-string $class
+     * @param array<string, string>|string|int $criteria
+     * @return KoncertoEntity[]
+     */
+    public static function find($class, $criteria = array())
+    {
+        $entities = array();
+        // @todo - get entityName and entityManager from entity internal annotation
+        $dsn = Koncerto::getConfig('entityManager.default');
+        if (null === $dsn) {
+            return null;
+        }
+        $pdo = new PDO($dsn);
+
+        $classFile = sprintf('_entity/%s.php', $class);
+        if (!is_file($classFile)) {
+            return null;
+        }
+
+        include_once $classFile;
+        if (!class_exists($class)) {
+            return null;
+        }
+
+        $entityName = strtolower($class);
+        $entityClass = new $class();
+
+        $where = '1 = 1';
+        $values = array();
+
+        if (is_string($criteria) || is_numeric($criteria)) {
+            $id = $entityClass->getId();
+            $values = array($id => $criteria);
+            $where = sprintf(
+                '%s = :%s',
+                $id,
+                $id
+            );
+        }
+
+        if (is_array($criteria) && count($criteria) > 0) {
+            $conditions = array();
+            $values = array();
+            foreach ($criteria as $field => $condition) {
+                // @todo - allow more conditions (equal, not equal, is null, etc)
+                array_push(
+                    $conditions,
+                    sprintf(
+                        '%s %s',
+                        $field,
+                        ' = :' . $field
+                    )
+                );
+                $values[$field] = $condition;
+            }
+            $where = implode(' AND ', $conditions);
+        }
+
+        $query = $pdo->prepare(
+            sprintf(
+                'SELECT * FROM %s WHERE %s',
+                $entityName,
+                $where
+            )
+        );
+
+        $query->execute($values);
+
+        return $query->fetchAll(PDO::FETCH_CLASS, $class);
     }
 
     /**

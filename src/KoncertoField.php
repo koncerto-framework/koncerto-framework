@@ -3,6 +3,18 @@
 // phpcs:disable PSR1.Classes.ClassDeclaration
 
 /**
+ * Field type enumeration (hidden, text, etc)
+ * @method string Hidden string "hidden"
+ * @method string Text string "text"
+ * @method string Email string "email"
+ * @method string Textarea string "textarea"
+ * @method string Select string "select"
+ */
+class KoncertoFieldType extends KoncertoEnum
+{
+}
+
+/**
  * Helper class to generate form fields based on
  * Template engine and _form.tbs.html template
  */
@@ -103,6 +115,10 @@ class KoncertoField
      */
     public function setType($type)
     {
+        if (!array_key_exists($type, KoncertoFieldType::cases())) {
+            throw new Exception(sprintf('Unknown field type %s, expected KoncertoFieldType', $type));
+        }
+
         $this->type = $type;
 
         return $this;

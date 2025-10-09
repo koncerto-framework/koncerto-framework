@@ -97,4 +97,17 @@ class KoncertoController
             ->setHeader('Content-type', 'application/json')
             ->setContent((string)json_encode($data));
     }
+
+    /**
+     * Redirect to another url
+     *
+     * @param string $url
+     * @return KoncertoResponse
+     */
+    public function redirect($url)
+    {
+        return (new KoncertoResponse())
+            ->setHeader('Location', $url)
+            ->setContent(null);
+    }
 }

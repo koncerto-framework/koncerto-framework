@@ -56,10 +56,12 @@ class KoncertoForm
         $this->options[$optionName] = $optionValue;
 
         if ('data' === $optionName && is_array($optionValue)) {
-            $request = new KoncertoRequest();
-            foreach ($optionValue as $key => $val) {
-                $request->set($key, $val);
+            $form = 'form';
+            if (array_key_exists('class', $this->options)) {
+                $form = strtolower($this->options['class']);
             }
+            $request = new KoncertoRequest();
+            $request->set($form, $optionValue);
         }
 
         return $this;
