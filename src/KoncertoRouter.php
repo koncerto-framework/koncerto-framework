@@ -74,7 +74,7 @@ class KoncertoRouter
             }
         }
 
-        file_put_contents('_cache/routes.json', json_encode($this->routes));
+        file_put_contents('_cache/routes.json', json_encode($this->routes, JSON_PRETTY_PRINT));
     }
 
     /**
