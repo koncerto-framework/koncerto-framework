@@ -57,7 +57,7 @@ class KoncertoForm
 
         if ('data' === $optionName && is_array($optionValue)) {
             $form = 'form';
-            if (array_key_exists('class', $this->options)) {
+            if (array_key_exists('class', $this->options) && is_string($this->options['class'])) {
                 $form = strtolower($this->options['class']);
             }
             $request = new KoncertoRequest();

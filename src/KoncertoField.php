@@ -4,11 +4,12 @@
 
 /**
  * Field type enumeration (hidden, text, etc)
- * @method string Hidden string "hidden"
- * @method string Text string "text"
- * @method string Email string "email"
- * @method string Textarea string "textarea"
- * @method string Select string "select"
+ *
+ * @method string Hidden() "hidden"
+ * @method string Text() "text"
+ * @method string Email() "email"
+ * @method string Textarea() "textarea"
+ * @method string Select() "select"
  */
 class KoncertoFieldType extends KoncertoEnum
 {

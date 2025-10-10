@@ -83,7 +83,7 @@ class KoncertoEnum
         $lines = explode("\n", $comment);
         foreach ($lines as $line) {
             // @phpstan-ignore argument.sscanf
-            if (5 === sscanf($line, "%*[^@]@method %s %s %s %[^\n]s", $type, $name, $type, $value)) {
+            if (5 === sscanf($line, "%*[^@]@method %s %s %[^\n]s", $type, $name, $value)) {
                 $key = json_decode((string)$value);
                 if (is_string($key) || is_numeric($key)) {
                     self::$cases[$key] = $name;

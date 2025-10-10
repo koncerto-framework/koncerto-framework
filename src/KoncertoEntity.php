@@ -166,7 +166,7 @@ class KoncertoEntity
         // @todo - get entityName and entityManager from entity internal annotation
         $dsn = Koncerto::getConfig('entityManager.default');
         if (null === $dsn) {
-            return null;
+            return false;
         }
         $pdo = new PDO($dsn);
 
@@ -176,7 +176,7 @@ class KoncertoEntity
 
         $id = $this->getId();
         if (null === $id) {
-            return null;
+            return false;
         }
 
         $query = $pdo->prepare(
@@ -204,18 +204,18 @@ class KoncertoEntity
         // @todo - get entityName and entityManager from entity internal annotation
         $dsn = Koncerto::getConfig('entityManager.default');
         if (null === $dsn) {
-            return null;
+            return [];
         }
         $pdo = new PDO($dsn);
 
         $classFile = sprintf('_entity/%s.php', $class);
         if (!is_file($classFile)) {
-            return null;
+            return [];
         }
 
         include_once $classFile;
         if (!class_exists($class)) {
-            return null;
+            return [];
         }
 
         $entityName = strtolower($class);
@@ -225,6 +225,7 @@ class KoncertoEntity
         $values = array();
 
         if (is_string($criteria) || is_numeric($criteria)) {
+            /** @var KoncertoEntity $entityClass */
             $id = $entityClass->getId();
             $values = array($id => $criteria);
             $where = sprintf(
