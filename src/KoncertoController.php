@@ -84,7 +84,9 @@ class KoncertoController
             $response->setHeader($headerName, $headerValue);
         }
 
-        return $response->setContent($tbs->Show(false));
+        $tbs->Show(TBS_NOTHING);
+
+        return $response->setContent($tbs->Source);
     }
 
     /**
