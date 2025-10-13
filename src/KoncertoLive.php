@@ -6,27 +6,35 @@
  */
 class KoncertoLive extends KoncertoController
 {
+    public function __construct()
+    {
+        $this->live();
+    }
+
     /**
-     * Return data from controller's live properties to Impulsus
+     * Get/set data from controller's live properties to Impulsus and back
      *
      * @internal {"route": {"name": "/_live"}}
      * @return KoncertoResponse
      */
-    public function getData()
+    public function live()
     {
-        $name = (string)(new KoncertoRequest())->get('name');
         $props = $this->getLiveProps();
 
-        if (!in_array($name, $props)) {
-            return $this->json(array('error' => sprintf(
-                '%s is not a live property',
-                $name
-            )));
+        $request = new KoncertoRequest();
+
+        $obj = array();
+        foreach ($props as $propName => $prop) {
+           if (array_key_exists('writable', $prop) && true === $prop['writable']) {
+                $update = $request->get($propName);
+                if (null !== $update) {
+                    $this->$propName = $update;
+                }
+                $obj[$propName] = $this->$propName;
+            }
         }
 
-        $value = $this->$name;
-
-        return $this->json(array($name => $value));
+        return $this->json($obj, JSON_PRETTY_PRINT);
     }
 
     /**
@@ -42,17 +50,61 @@ class KoncertoLive extends KoncertoController
 
         $controller = <<<JS
                     KoncertoImpulsus.controllers['live'] = function(controller) {
-                        controller.on('$' + 'render',  function(element) {
-                            var props = {$props};
-                            props.forEach(function(prop) {
-                                KoncertoImpulsus.fetch('_live?name=' + prop, false, function(response) {
-                                    var json = JSON.parse(response.responseText);
-                                    if (prop in json) {
-                                        // @todo - support different target type (text, input, etc)
-                                        element.targets['$' + prop].innerText = json[prop];
+                        function liveProps() {
+                            return {$props};
+                        }
+                        function liveUpdate(element) {
+                            var update = '';
+                            var props = liveProps();
+                            for (var propName in props) {
+                                var prop = props[propName];
+                                if (prop.writable) {
+                                    var target = element.targets['$' + propName];
+                                    var value = target.innerText;
+                                    var tagName = new String(target.tagName).toLowerCase();
+                                    if ('input' === tagName) {
+                                        value = target.value;
+                                        if ('checkbox' === target.type) {
+                                            value = target.checked ? target.value : '';
+                                        }
                                     }
-                                });
-                            })
+                                    update += '&' + encodeURIComponent(propName) + '=' + encodeURIComponent(value);
+                                }
+                            }
+
+                            return update;
+                        }
+                        controller.on('$' + 'render',  function(element) {
+                            KoncertoImpulsus.fetch('_live?' + liveUpdate(element), false, function(response) {
+                                var json = JSON.parse(response.responseText);
+                                var props = liveProps();
+                                for (var propName in props) {
+                                    var prop = props[propName];
+                                    if (propName in json) {
+                                        // @todo - support different target type (text, input, etc)
+                                        var target = element.targets['$' + propName];
+                                        var tagName = new String(target.tagName).toLowerCase();
+                                        if ('input' === tagName) {
+                                            if ('checkbox' === target.type) {
+                                                target.checked = target.value === json[propName];
+                                                return;
+                                            }
+                                            target.value = json[propName];
+                                            return;
+                                        }
+                                        if ('select' === tagName) {
+                                            for (var i = 0; i < target.options.length; i++) {
+                                                if (json[prop] === target.options[i].value) {
+                                                    target.options.selectedIndex = i;
+                                                    break;
+                                                }
+                                            }
+                                            return;
+                                        }
+                                        target.innerText = json[propName];
+                                    }
+                                }
+                            });
                         });
                     }
 
@@ -62,6 +114,11 @@ class KoncertoLive extends KoncertoController
                             document.querySelectorAll('[data-model]').forEach(function(model) {
                                 model.setAttribute('data-target', '$' + model.getAttribute('data-model'));
                             });
+                            var props = {$props};
+                            for (var propName in props) {
+                                var prop = props[propName];
+                                console.debug(propName, prop);
+                            }
                         }, 100);
                     });
 JS;
@@ -93,6 +150,8 @@ HTML, $content);
 
     /**
      * Get live props from class internal comments
+     *
+     * @return array<string, mixed>
      */
     private function getLiveProps()
     {
@@ -113,13 +172,13 @@ HTML, $content);
                     $internal = (array)json_decode((string)$json, true);
                     if (array_key_exists('live', $internal) && is_array($internal['live'])) {
                         if (array_key_exists('prop', $internal['live'])) {
-                            array_push($props, $property->getName());
+                            $props[$property->getName()] = $internal['live']['prop'];
                         }
                     }
                 }
             }
         }
 
-        return array_unique($props);
+        return $props;
     }
 }
