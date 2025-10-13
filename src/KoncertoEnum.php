@@ -83,13 +83,15 @@ class KoncertoEnum
         $lines = explode("\n", $comment);
         foreach ($lines as $line) {
             // @phpstan-ignore argument.sscanf
-            if (5 === sscanf($line, "%*[^@]@method %s %s %[^\n]s", $type, $name, $value)) {
+            if (4 === sscanf($line, "%*[^@]@method %s %s %[^\n]s", $type, $name, $value)) {
+                $name = preg_replace('/[^A-Za-z0-9]/', '', $name);
                 $key = json_decode((string)$value);
                 if (is_string($key) || is_numeric($key)) {
                     self::$cases[$key] = $name;
                 }
             // @phpstan-ignore argument.sscanf
             } elseif (2 === sscanf($line, "%*[^@]@method int %[^\n]s", $name)) {
+                $name = preg_replace('/[^A-Za-z0-9]/', '', $name);
                 array_push(self::$cases, $name);
             }
         }

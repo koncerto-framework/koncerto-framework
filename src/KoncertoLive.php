@@ -48,6 +48,7 @@ class KoncertoLive extends KoncertoController
                                 KoncertoImpulsus.fetch('_live?name=' + prop, false, function(response) {
                                     var json = JSON.parse(response.responseText);
                                     if (prop in json) {
+                                        // @todo - support different target type (text, input, etc)
                                         element.targets['$' + prop].innerText = json[prop];
                                     }
                                 });
