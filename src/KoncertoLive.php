@@ -128,8 +128,7 @@ JS;
         $impulsusLocations = array(
             '/impulsus.js',
             '/src/KoncertoImpulsus.js',
-            '/koncerto-impulsus/src/KoncertoImpulsus.js',
-            '/../koncerto-impulsus/src/KoncertoImpulsus.js'
+            '/koncerto-impulsus/src/KoncertoImpulsus.js'
         );
 
         $impulsusValidLocations = array_filter($impulsusLocations, function ($impulsusLocation) {
@@ -138,13 +137,13 @@ JS;
 
         $impulsus = array_shift($impulsusValidLocations);
 
-        if ('' === $impulsus) {
-            throw new Exception('Impulsus framework not found');
+        if (null === $impulsus) {
+            $impulsus = 'https://koncerto-framework.github.io/koncerto-playground/impulsus.js';
         }
 
         $content = str_replace('</head>', <<<HTML
-                <script src="{$impulsus}"></script>
-                <script type="text/javascript">
+                <script data-reload onload="if (window.reloadScript) reloadScript('#live-controller-script')" src="{$impulsus}"></script>
+                <script id="live-controller-script" type="text/javascript">
                     {$controller}
                 </script>
             </head>
