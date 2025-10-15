@@ -87,9 +87,13 @@ class Koncerto
     {
         $request = new KoncertoRequest();
         $router = new KoncertoRouter();
-        $match = $router->match($request->getPathInfo());
+        $pathInfo = $request->getPathInfo();
+        $match = $router->match($pathInfo);
+        if (null === $match && '.php' !== strrchr($pathInfo, '.') && is_file('.' . $pathInfo)) {
+            return file_get_contents('.' . $pathInfo);
+        }
         if (null === $match) {
-            throw new Exception(sprintf('No match for route %s', $request->getPathInfo()));
+            throw new Exception(sprintf('No match for route %s', $pathInfo));
         }
         list($controller, $action) = explode('::', $match);
         $response = (new $controller())->$action();

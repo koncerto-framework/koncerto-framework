@@ -125,16 +125,19 @@ class KoncertoLive extends KoncertoController
                     });
 JS;
 
-        $impulsus = '';
-        if (is_file('impulsus.js')) {
-            $impulsus = 'impulsus.js';
-        }
-        if (is_file('src/KoncertoImpulsus.js')) {
-            $impulsus = 'src/KoncertoImpulsus.js';
-        }
-        if (is_file('../koncerto-impulsus/src/KoncertoImpulsus.js')) {
-            $impulsus = '../koncerto-impulsus/src/KoncertoImpulsus.js';
-        }
+        $impulsusLocations = array(
+            '/impulsus.js',
+            '/src/KoncertoImpulsus.js',
+            '/koncerto-impulsus/src/KoncertoImpulsus.js',
+            '/../koncerto-impulsus/src/KoncertoImpulsus.js'
+        );
+
+        $impulsusValidLocations = array_filter($impulsusLocations, function ($impulsusLocation) {
+            return is_file(dirname(__FILE__) . $impulsusLocation);
+        });
+
+        $impulsus = array_shift($impulsusValidLocations);
+
         if ('' === $impulsus) {
             throw new Exception('Impulsus framework not found');
         }

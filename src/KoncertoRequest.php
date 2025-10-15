@@ -16,6 +16,10 @@ class KoncertoRequest
             return $_SERVER['PATH_INFO'];
         }
 
+        if (array_key_exists('REQUEST_URI', $_SERVER)) {
+            return $_SERVER['REQUEST_URI'];
+        }
+
         return '/';
     }
 
