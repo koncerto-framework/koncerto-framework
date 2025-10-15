@@ -90,14 +90,28 @@ class KoncertoController
     }
 
     /**
-     * @param  array<array-key, mixed> $data
+     * @param array<array-key, mixed> $data
+     * @param array<string, mixed> $options
      * @return KoncertoResponse
      */
-    public function json($data)
+    public function json($data, $options = array())
     {
-        return (new KoncertoResponse())
-            ->setHeader('Content-type', 'application/json')
-            ->setContent((string)json_encode($data));
+        $json = (string)json_encode($data);
+        if (array_key_exists('pretty', $options) && is_bool($options['pretty']) && true === $options['pretty']) {
+            $json = (string)json_encode($data, JSON_PRETTY_PRINT);
+        }
+
+        $response = (new KoncertoResponse())->setHeader('Content-type', 'application/json');
+
+        if (array_key_exists('headers', $options) && is_array($options['headers'])) {
+            foreach ($options['headers'] as $headerName => $headerValue) {
+                if (is_string($headerValue) || is_numeric($headerValue) || is_bool($headerValue)) {
+                    $response->setHeader($headerName, (string)$headerValue);
+                }
+            }
+        }
+
+        return $response->setContent($json);
     }
 
     /**

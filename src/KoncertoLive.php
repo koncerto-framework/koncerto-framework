@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable PSR1.Classes.ClassDeclaration
+
 /**
  * KoncertoLive class to implement a JavaScript bridge
  * based on Impulsus actions and frames
@@ -25,7 +27,7 @@ class KoncertoLive extends KoncertoController
 
         $obj = array();
         foreach ($props as $propName => $prop) {
-           if (array_key_exists('writable', $prop) && true === $prop['writable']) {
+            if (is_array($prop) && array_key_exists('writable', $prop) && true === $prop['writable']) {
                 $update = $request->get($propName);
                 if (null !== $update) {
                     $this->$propName = $update;
@@ -34,7 +36,7 @@ class KoncertoLive extends KoncertoController
             }
         }
 
-        return $this->json($obj, JSON_PRETTY_PRINT);
+        return $this->json($obj, array('pretty' => true));
     }
 
     /**
