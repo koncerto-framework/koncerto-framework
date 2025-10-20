@@ -90,7 +90,7 @@ class Koncerto
         $pathInfo = $request->getPathInfo();
         $match = $router->match($pathInfo);
         if (null === $match && '.php' !== strrchr($pathInfo, '.') && is_file('.' . $pathInfo)) {
-            return file_get_contents('.' . $pathInfo);
+            return (string)file_get_contents('.' . $pathInfo);
         }
         if (null === $match) {
             throw new Exception(sprintf('No match for route %s', $pathInfo));
@@ -124,5 +124,30 @@ class Koncerto
                 return;
             }
         }
+    }
+
+    /**
+     * Parse internal comment
+     *
+     * @param string|false $comment
+     * @return array<array-key, mixed>
+     */
+    public static function getInternal($comment)
+    {
+        if (false === $comment) {
+            return [];
+        }
+
+        $lines = explode("\n", $comment);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            // @phpstan-ignore argument.sscanf
+            if (2 === sscanf($line, "%*[^@]@internal %[^\n]s", $json)) {
+                $internal = (array)json_decode((string)$json, true);
+                return $internal;
+            }
+        }
+
+        return [];
     }
 }

@@ -267,7 +267,7 @@ class KoncertoEntity
     }
 
     /**
-     * Get ID column from @internal comments
+     * Get ID column from internal comments
      *
      * @return ?string
      */
@@ -277,22 +277,9 @@ class KoncertoEntity
         $props = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
 
         foreach ($props as $prop) {
-            $comment = $prop->getDocComment();
-            if (false === $comment) {
-                $comment = '';
-            }
-            $lines = explode("\n", $comment);
-            foreach ($lines as $line) {
-                $line = trim($line);
-                // @phpstan-ignore argument.sscanf
-                if (2 === sscanf($line, "%*[^@]@internal %[^\n]s", $json)) {
-                    $internal = (array)json_decode((string)$json, true);
-                    if (!array_key_exists('key', $internal)) {
-                        return null;
-                    }
-
-                    return $prop->getName();
-                }
+            $internal = Koncerto::getInternal($prop->getDocComment());
+            if (array_key_exists('key', $internal)) {
+                return $prop->getName();
             }
         }
 

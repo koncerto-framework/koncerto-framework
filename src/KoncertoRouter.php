@@ -5,7 +5,7 @@
 /**
  * Routing class
  * Koncerto matches KoncertoController classes from _controller folder
- * using @internal {"route":{name:"/"}} annotation
+ * using internal {"route":{name:"/"}} annotation
  */
 class KoncertoRouter
 {
@@ -89,12 +89,7 @@ class KoncertoRouter
         $routes = array();
         $methods = (new ReflectionClass($className))->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
-            $comment = $method->getDocComment();
-            if (false === $comment) {
-                continue;
-            }
-
-            $routeName = $this->getControllerRoute($comment);
+            $routeName = $this->getControllerRoute($method->getDocComment());
             if (null === $routeName) {
                 continue;
             }
@@ -110,28 +105,20 @@ class KoncertoRouter
     }
 
     /**
-     * @param  string $comment
+     * @param  string|false $comment
      * @return ?string
      */
     public function getControllerRoute($comment)
     {
-        $lines = explode("\n", $comment);
-        foreach ($lines as $line) {
-            $line = trim($line);
-            // @phpstan-ignore argument.sscanf
-            if (2 === sscanf($line, "%*[^@]@internal %[^\n]s", $json)) {
-                $internal = (array)json_decode((string)$json, true);
-                if (!array_key_exists('route', $internal)) {
-                    return null;
-                }
-                if (!array_key_exists('name', $internal['route'])) {
-                    return null;
-                }
+        $internal = Koncerto::getInternal($comment);
 
-                return $internal['route']['name'];
-            }
+        if (!array_key_exists('route', $internal)) {
+            return null;
+        }
+        if (!array_key_exists('name', $internal['route'])) {
+            return null;
         }
 
-        return null;
+        return $internal['route']['name'];
     }
 }

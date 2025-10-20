@@ -126,4 +126,27 @@ class KoncertoController
             ->setHeader('Location', $url)
             ->setContent(null);
     }
+
+    /**
+     * Get the route associated with the controller from internal comment
+     *
+     * @return ?string
+     */
+    public function getRoute()
+    {
+        $ref = new ReflectionClass(get_called_class());
+        $internal = Koncerto::getInternal($ref->getDocComment());
+
+        if (!array_key_exists('route', $internal))
+        {
+            return null;
+        }
+
+        if (!array_key_exists('name', $internal['route']))
+        {
+            return null;
+        }
+
+        return $internal['route']['name'];
+    }
 }

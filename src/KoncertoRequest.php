@@ -21,7 +21,7 @@ class KoncertoRequest
         }
 
         if ('true' === Koncerto::getConfig('routing.useHash')) {
-            return Koncerto::getConfig('request.pathInfo');
+            return (string)Koncerto::getConfig('request.pathInfo');
         }
 
         return '/';

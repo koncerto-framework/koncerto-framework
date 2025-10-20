@@ -164,21 +164,10 @@ HTML, $content);
         $class = new ReflectionClass(get_called_class());
         $properties = $class->getProperties(ReflectionProperty::IS_PUBLIC);
         foreach ($properties as $property) {
-            $comment = $property->getDocComment();
-            if (false === $comment) {
-                continue;
-            }
-
-            $lines = explode("\n", $comment);
-            foreach ($lines as $line) {
-                // @phpstan-ignore argument.sscanf
-                if (1 === sscanf($line, "%*[^@]@internal %[^\n]s", $json)) {
-                    $internal = (array)json_decode((string)$json, true);
-                    if (array_key_exists('live', $internal) && is_array($internal['live'])) {
-                        if (array_key_exists('prop', $internal['live'])) {
-                            $props[$property->getName()] = $internal['live']['prop'];
-                        }
-                    }
+            $internal = Koncerto::getInternal($property->getDocComment());
+            if (array_key_exists('live', $internal) && is_array($internal['live'])) {
+                if (array_key_exists('prop', $internal['live'])) {
+                    $props[$property->getName()] = $internal['live']['prop'];
                 }
             }
         }
