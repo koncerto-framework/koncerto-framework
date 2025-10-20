@@ -65,9 +65,6 @@ class KoncertoRouter
 
         while ($f = readdir($dir)) {
             if (is_file($d . $f) && '.php' === strrchr($f, '.')) {
-                if (count($this->routes) > 0 && filemtime($d . $f) > filemtime('_cache/routes.json')) {
-                    $this->routes = array();
-                }
                 include_once $d . $f;
                 $className = str_replace('.php', '', $f);
                 if (class_exists($className)) {

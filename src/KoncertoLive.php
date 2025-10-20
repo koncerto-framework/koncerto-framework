@@ -10,6 +10,12 @@ class KoncertoLive extends KoncertoController
 {
     public function __construct()
     {
+        session_start();
+        if (!array_key_exists('csrf', $_SESSION) || empty($_SESSION['csrf'])) {
+            $_SESSION['csrf'] = sha1(uniqid((string)mt_rand(), true) . microtime(true) . getmypid());
+        }
+        $request = new KoncertoRequest();
+        $request->set('_csrf', $_SESSION['csrf']);
         $this->live();
     }
 
@@ -25,9 +31,16 @@ class KoncertoLive extends KoncertoController
             throw new Exception(sprintf("Live controller [%s] requires a main route", get_class($this)));
         }
 
-        $props = $this->getLiveProps();
-
         $request = new KoncertoRequest();
+        $csrf = $request->get('_csrf');
+        if (null === $csrf || !is_string($csrf)) {
+            throw new Exception('Missing required argument _csrf');
+        }
+        if (!array_key_exists('csrf', $_SESSION) || !$this->validateCsrf($_SESSION['csrf'], $csrf)) {
+            throw new Exception('Invalid csrf token');
+        }
+
+        $props = $this->getLiveProps();
 
         $obj = array();
         foreach ($props as $propName => $prop) {
@@ -53,6 +66,11 @@ class KoncertoLive extends KoncertoController
         $content = $response->getContent();
 
         $props = json_encode($this->getLiveProps());
+
+        if (!array_key_exists('csrf', $_SESSION) || empty($_SESSION['csrf'])) {
+            $_SESSION['csrf'] = sha1(uniqid((string)mt_rand(), true) . microtime(true) . getmypid());
+        }
+        $csrf = $_SESSION['csrf'];
 
         $controller = <<<JS
                     KoncertoImpulsus.controllers['live'] = function(controller) {
@@ -80,14 +98,15 @@ class KoncertoLive extends KoncertoController
 
                             return update;
                         }
-                        controller.on('$' + 'render',  function(element) {
-                            KoncertoImpulsus.fetch('_live?' + liveUpdate(element), false, function(response) {
+                        controller.on('$' + 'render',  function(controller) {
+                            var csrf = 'csrf=' + controller.element.dataset.csrf;
+                            KoncertoImpulsus.fetch('_live?' + csrf + liveUpdate(controller), false, function(response) {
                                 var json = JSON.parse(response.responseText);
                                 var props = liveProps();
                                 for (var propName in props) {
                                     var prop = props[propName];
                                     if (propName in json) {
-                                        var target = element.targets['$' + propName];
+                                        var target = controller.targets['$' + propName];
                                         var tagName = new String(target.tagName).toLowerCase();
                                         if ('input' === tagName) {
                                             if ('checkbox' === target.type) {
@@ -116,6 +135,7 @@ class KoncertoLive extends KoncertoController
                     window.addEventListener('load', function() {
                         setTimeout(function() {
                             document.querySelector(':root').setAttribute('data-controller', 'live');
+                            document.querySelector(':root').setAttribute('data-csrf', '{$csrf}');
                             document.querySelectorAll('[data-model]').forEach(function(model) {
                                 model.setAttribute('data-target', '$' + model.getAttribute('data-model'));
                             });
@@ -185,5 +205,27 @@ HTML, $content);
         Koncerto::cache('live', null, array($className => $props));
 
         return $props;
+    }
+
+    /**
+     * Validate csrf token
+     *
+     * @param string $csrf
+     * @param string $csrfToValidate
+     * @return bool
+     */
+    private function validateCsrf($csrf, $csrfToValidate)
+    {
+        $length = strlen($csrf);
+        if ($length !== strlen($csrfToValidate)) {
+            return false;
+        }
+
+        $result = 0;
+        for ($i = 0; $i < $length; $i++) {
+            $result |= (ord($csrf[$i]) ^ ord($csrfToValidate[$i]));
+        }
+
+        return 0 === $result;
     }
 }

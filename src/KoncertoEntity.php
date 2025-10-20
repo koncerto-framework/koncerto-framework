@@ -103,7 +103,8 @@ class KoncertoEntity
             $fields
         );
 
-        $entityName = strtolower(get_class($this));
+        $className = get_class($this);
+        $entityName = strtolower($className);
 
         $id = $this->getId();
         if (null === $id) {
@@ -122,6 +123,10 @@ class KoncertoEntity
                 )
             );
         } else {
+            $entity = $this->find($className, strval($data['id']));
+            if (null === $entity) {
+                return null;
+            }
             $updates = array_map(
                 function ($field, $placeholder) {
                     return sprintf('%s = %s', $field, $placeholder);
@@ -196,7 +201,7 @@ class KoncertoEntity
      *
      * @param class-string $class
      * @param array<string, string>|string|int $criteria
-     * @return KoncertoEntity[]
+     * @return KoncertoEntity|KoncertoEntity[]|null
      */
     public static function find($class, $criteria = array())
     {
@@ -224,7 +229,9 @@ class KoncertoEntity
         $where = '1 = 1';
         $values = array();
 
-        if (is_string($criteria) || is_numeric($criteria)) {
+        $findById = is_string($criteria) || is_numeric($criteria);
+
+        if ($findById) {
             /** @var KoncertoEntity $entityClass */
             $id = $entityClass->getId();
             $values = array($id => $criteria);
@@ -263,7 +270,21 @@ class KoncertoEntity
 
         $query->execute($values);
 
-        return $query->fetchAll(PDO::FETCH_CLASS, $class);
+        $result = $query->fetchAll(PDO::FETCH_CLASS, $class);
+
+        if ($findById && count($result) > 1) {
+            throw new Exception(sprintf(
+                'NonUniqueResult %s for entity %s',
+                json_encode($criteria),
+                $entityName
+            ));
+        }
+
+        if ($findById) {
+            $result = empty($result) ? null : $result[0];
+        }
+
+        return $result;
     }
 
     /**
