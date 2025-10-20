@@ -32,14 +32,31 @@ class Koncerto
      */
     public static function loadClass($className)
     {
+        if (class_exists($className)) {
+            return;
+        }
+
         if ('clsTinyButStrong' === $className && !class_exists('clsTinyButStrong')) {
             self::loadTBS();
             return;
         }
 
-        if (!class_exists($className)) {
-            include_once dirname(__FILE__) . '/' . $className . '.php';
+        $classFile = sprintf('%s/%s.php', dirname(__FILE__), $className);
+        $root = is_string($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '.';
+
+        if (!is_file($classFile)) {
+            $classFile = sprintf('%s/%s.php', $root, $className);
         }
+
+        if (!is_file($classFile) && 'Controller' === substr($className, -10)) {
+            $classFile = sprintf('%s/_controller/%s.php', $root, $className);
+        }
+
+        if (!is_file($classFile)) {
+            throw new Exception(sprintf('Class file [%s] not found', $classFile));
+        }
+
+        include_once $classFile;
     }
 
     /**
@@ -96,6 +113,15 @@ class Koncerto
             throw new Exception(sprintf('No match for route %s', $pathInfo));
         }
         list($controller, $action) = explode('::', $match);
+        $classFile = sprintf('%s/_controller/%s.php', dirname(__FILE__), $controller);
+        if (!class_exists($controller) && is_file($classFile)) {
+            include_once $classFile;
+        }
+        $root = is_string($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '.';
+        $classFile = sprintf('%s/_controller/%s.php', $root, $controller);
+        if (!class_exists($controller) && is_file($classFile)) {
+            include_once $classFile;
+        }
         $response = (new $controller())->$action();
         $headers = $response->getHeaders();
         foreach ($headers as $headerName => $headerValue) {
@@ -135,7 +161,7 @@ class Koncerto
     public static function getInternal($comment)
     {
         if (false === $comment) {
-            return [];
+            return array();
         }
 
         $lines = explode("\n", $comment);
@@ -148,6 +174,51 @@ class Koncerto
             }
         }
 
-        return [];
+        return array();
+    }
+
+    /**
+     * Set/update cache and optionnaly returns a specific key from this cache
+     *
+     * @param string $name The cache filenale
+     * @param ?string $return The key from cache to return
+     * @param array<array-key, mixed> $data The data to put in cache, reads from cache if empty
+     * @return string|array<array-key, mixed>|null
+     */
+    public static function cache($name, $return = null, $data = array())
+    {
+        $result = null;
+
+        $cacheDir = '_cache/';
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir);
+        }
+        $cacheFile = $cacheDir . $name . '.json';
+        if (!is_file($cacheFile)) {
+            file_put_contents($cacheFile, '[]');
+        }
+
+        $cache = (array)json_decode((string)file_get_contents($cacheFile), true);
+        $cache = array_merge($cache, $data);
+
+        if (file_put_contents($cacheFile, json_encode($cache, JSON_PRETTY_PRINT))) {
+            $result = $cache;
+        }
+
+        if (null === $return) {
+            return $result;
+        }
+
+        if (!array_key_exists($return, $data)) {
+            return null;
+        }
+
+        $result = $data[$return];
+
+        if (is_string($result) || is_array($result)) {
+            return $result;
+        }
+
+        return null;
     }
 }

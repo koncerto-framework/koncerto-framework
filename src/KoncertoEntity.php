@@ -204,18 +204,18 @@ class KoncertoEntity
         // @todo - get entityName and entityManager from entity internal annotation
         $dsn = Koncerto::getConfig('entityManager.default');
         if (null === $dsn) {
-            return [];
+            return array();
         }
         $pdo = new PDO($dsn);
 
         $classFile = sprintf('_entity/%s.php', $class);
         if (!is_file($classFile)) {
-            return [];
+            return array();
         }
 
         include_once $classFile;
         if (!class_exists($class)) {
-            return [];
+            return array();
         }
 
         $entityName = strtolower($class);
@@ -273,12 +273,20 @@ class KoncertoEntity
      */
     private function getId()
     {
+        $className = get_class($this);
+        $entity = Koncerto::cache('entities', $className);
+        if (is_array($entity) && array_key_exists('id', $entity) && is_string($entity['id'])) {
+            return $entity['id'];
+        }
+
         $ref = new ReflectionClass($this);
         $props = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
 
         foreach ($props as $prop) {
             $internal = Koncerto::getInternal($prop->getDocComment());
             if (array_key_exists('key', $internal)) {
+                Koncerto::cache('entities', null, array($className => array('id' => $prop->getName())));
+
                 return $prop->getName();
             }
         }

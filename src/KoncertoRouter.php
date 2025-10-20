@@ -37,16 +37,11 @@ class KoncertoRouter
      */
     private function getRoutes($url)
     {
-        if (!is_dir('_cache')) {
-            mkdir('_cache');
-        }
-
-        if (!is_file('_cache/routes.json')) {
-            file_put_contents('_cache/routes.json', json_encode($this->routes, JSON_PRETTY_PRINT));
-        }
-
         if (0 === count($this->routes)) {
-            $this->routes = (array)json_decode('_cache/routes.json', true);
+            $routes = Koncerto::cache('routes');
+            $this->routes = is_array($routes) ? array_filter(array_map(function ($route) {
+                return is_string($route) ? $route : null;
+            }, $routes)) : array();
         }
 
         $routeUpdate = stat('_controller');
@@ -86,7 +81,7 @@ class KoncertoRouter
             }
         }
 
-        file_put_contents('_cache/routes.json', json_encode($this->routes, JSON_PRETTY_PRINT));
+        Koncerto::cache('routes', null, $this->routes);
     }
 
     /**

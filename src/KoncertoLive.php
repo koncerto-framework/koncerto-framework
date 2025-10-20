@@ -163,6 +163,12 @@ HTML, $content);
      */
     private function getLiveProps()
     {
+        $className = get_called_class();
+        $props = Koncerto::cache('live', $className);
+        if (is_array($props)) {
+            return $props;
+        }
+
         $props = array();
 
         $class = new ReflectionClass(get_called_class());
@@ -175,6 +181,8 @@ HTML, $content);
                 }
             }
         }
+
+        Koncerto::cache('live', null, array($className => $props));
 
         return $props;
     }
