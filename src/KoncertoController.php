@@ -130,20 +130,22 @@ class KoncertoController
     /**
      * Get the route associated with the controller from internal comment
      *
+     * @param class-string $className
      * @return ?string
      */
-    public function getRoute()
+    public function getRoute($className = null)
     {
-        $ref = new ReflectionClass(get_called_class());
+        if (null === $className) {
+            $className = get_called_class();
+        }
+        $ref = new ReflectionClass($className);
         $internal = Koncerto::getInternal($ref->getDocComment());
 
-        if (!array_key_exists('route', $internal))
-        {
+        if (!array_key_exists('route', $internal)) {
             return null;
         }
 
-        if (!array_key_exists('name', $internal['route']))
-        {
+        if (!array_key_exists('name', $internal['route'])) {
             return null;
         }
 

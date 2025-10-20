@@ -41,8 +41,17 @@ class KoncertoRouter
             mkdir('_cache');
         }
 
-        if (0 === count($this->routes) && is_file('_cache/routes.json')) {
+        if (!is_file('_cache/routes.json')) {
+            file_put_contents('_cache/routes.json', json_encode($this->routes, JSON_PRETTY_PRINT));
+        }
+
+        if (0 === count($this->routes)) {
             $this->routes = (array)json_decode('_cache/routes.json', true);
+        }
+
+        $routeUpdate = stat('_controller');
+        if (count($this->routes) > 0 && false !== $routeUpdate && $routeUpdate[9] > filemtime('_cache/routes.json')) {
+            $this->routes = array();
         }
 
         if (array_key_exists($url, $this->routes)) {
@@ -61,6 +70,9 @@ class KoncertoRouter
 
         while ($f = readdir($dir)) {
             if (is_file($d . $f) && '.php' === strrchr($f, '.')) {
+                if (count($this->routes) > 0 && filemtime($d . $f) > filemtime('_cache/routes.json')) {
+                    $this->routes = array();
+                }
                 include_once $d . $f;
                 $className = str_replace('.php', '', $f);
                 if (class_exists($className)) {
@@ -83,15 +95,23 @@ class KoncertoRouter
      */
     private function getControllerRoutes($className)
     {
+        $ref = new ReflectionClass($className);
+        $mainRoute = (new KoncertoController())->getRoute($className);
         /**
           * @var array<string, string>
           */
         $routes = array();
-        $methods = (new ReflectionClass($className))->getMethods(ReflectionMethod::IS_PUBLIC);
+        $methods = $ref->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
             $routeName = $this->getControllerRoute($method->getDocComment());
             if (null === $routeName) {
                 continue;
+            }
+            if (empty($routeName)) {
+                $routeName = '/';
+            }
+            if (null !== $mainRoute && '/' === substr($mainRoute, 0, 1)) {
+                $routeName = $mainRoute . $routeName;
             }
 
             $routes[$routeName] = sprintf(
@@ -115,6 +135,7 @@ class KoncertoRouter
         if (!array_key_exists('route', $internal)) {
             return null;
         }
+
         if (!array_key_exists('name', $internal['route'])) {
             return null;
         }

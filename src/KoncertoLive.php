@@ -21,6 +21,10 @@ class KoncertoLive extends KoncertoController
      */
     public function live()
     {
+        if (null === $this->getRoute()) {
+            throw new Exception(sprintf("Live controller [%s] requires a main route", get_class($this)));
+        }
+
         $props = $this->getLiveProps();
 
         $request = new KoncertoRequest();
@@ -32,8 +36,8 @@ class KoncertoLive extends KoncertoController
                 if (null !== $update) {
                     $this->$propName = $update;
                 }
-                $obj[$propName] = $this->$propName;
             }
+            $obj[$propName] = $this->$propName;
         }
 
         return $this->json($obj, array('pretty' => true));
@@ -83,7 +87,6 @@ class KoncertoLive extends KoncertoController
                                 for (var propName in props) {
                                     var prop = props[propName];
                                     if (propName in json) {
-                                        // @todo - support different target type (text, input, etc)
                                         var target = element.targets['$' + propName];
                                         var tagName = new String(target.tagName).toLowerCase();
                                         if ('input' === tagName) {
@@ -142,7 +145,8 @@ JS;
         }
 
         $content = str_replace('</head>', <<<HTML
-                <script data-reload onload="if (window.reloadScript) reloadScript('#live-controller-script')" src="{$impulsus}"></script>
+                <script data-reload src="{$impulsus}"
+                onload="if (window.reloadScript) reloadScript('#live-controller-script')"></script>
                 <script id="live-controller-script" type="text/javascript">
                     {$controller}
                 </script>
