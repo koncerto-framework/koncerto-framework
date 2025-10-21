@@ -21,6 +21,7 @@ class KoncertoController
         $tbs->MethodsAllowed = true;
         $tbs->ObjectRef = array();
         $tbs->ObjectRef['request'] = new KoncertoRequest();
+        $tbs->ObjectRef['router'] = new KoncertoRouter();
         $tbs->SetOption('include_path', dirname(__FILE__) . '/_templates');
         $tbs->SetOption('include_path', dirname(__FILE__) . '/../_templates');
         $tbs->SetOption('include_path', dirname(__FILE__) . '/..');
