@@ -183,9 +183,10 @@ class Koncerto
      * @param string $name The cache filenale
      * @param ?string $return The key from cache to return
      * @param array<array-key, mixed> $data The data to put in cache, reads from cache if empty
+     * @param ?string $source Source directory or file to invalidate cache
      * @return string|array<array-key, mixed>|null
      */
-    public static function cache($name, $return = null, $data = array())
+    public static function cache($name, $return = null, $data = array(), $source = null)
     {
         $result = null;
 
@@ -199,6 +200,14 @@ class Koncerto
         }
 
         $cache = (array)json_decode((string)file_get_contents($cacheFile), true);
+
+        if (null !== $source && (is_dir($source) || is_file($source))) {
+            $stat = stat($source);
+            if (false !== $stat && $stat[9] >= filemtime($cacheFile)) {
+                $cache = array();
+            }
+        }
+
         $cache = array_merge($cache, $data);
 
         if (file_put_contents($cacheFile, json_encode($cache, JSON_PRETTY_PRINT))) {

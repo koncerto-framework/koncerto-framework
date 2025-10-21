@@ -37,17 +37,10 @@ class KoncertoRouter
      */
     private function getRoutes($url)
     {
-        if (0 === count($this->routes)) {
-            $routes = Koncerto::cache('routes');
-            $this->routes = is_array($routes) ? array_filter(array_map(function ($route) {
-                return is_string($route) ? $route : null;
-            }, $routes)) : array();
-        }
-
-        $routeUpdate = stat('_controller');
-        if (count($this->routes) > 0 && false !== $routeUpdate && $routeUpdate[9] > filemtime('_cache/routes.json')) {
-            $this->routes = array();
-        }
+        $routes = Koncerto::cache('routes', null, $this->routes, '_controller');
+        $this->routes = is_array($routes) ? array_filter(array_map(function ($route) {
+            return is_string($route) ? $route : null;
+        }, $routes)) : array();
 
         if (array_key_exists($url, $this->routes)) {
             return;
