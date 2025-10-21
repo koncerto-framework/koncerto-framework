@@ -66,6 +66,9 @@ class Koncerto
     public static function setConfig($config)
     {
         Koncerto::$config = $config;
+        if (array_key_exists('documentRoot', $config)) {
+            $_SERVER['DOCUMENT_ROOT'] = $config['documentRoot'];
+        }
     }
 
     /**

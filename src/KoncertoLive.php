@@ -10,12 +10,12 @@ class KoncertoLive extends KoncertoController
 {
     public function __construct()
     {
-        session_start();
-        if (!array_key_exists('csrf', $_SESSION) || empty($_SESSION['csrf'])) {
-            $_SESSION['csrf'] = sha1(uniqid((string)mt_rand(), true) . microtime(true) . getmypid());
+        if (!array_key_exists('csrf', $_COOKIE) || empty($_COOKIE['csrf'])) {
+            $_COOKIE['csrf'] = sha1(uniqid((string)mt_rand(), true) . microtime(true) . getmypid());
+            setcookie('csrf', $_COOKIE['csrf']);
         }
         $request = new KoncertoRequest();
-        $request->set('_csrf', $_SESSION['csrf']);
+        $request->set('_csrf', $_COOKIE['csrf']);
         $this->live();
     }
 
@@ -36,7 +36,7 @@ class KoncertoLive extends KoncertoController
         if (null === $csrf || !is_string($csrf)) {
             throw new Exception('Missing required argument _csrf');
         }
-        if (!array_key_exists('csrf', $_SESSION) || !$this->validateCsrf($_SESSION['csrf'], $csrf)) {
+        if (!array_key_exists('csrf', $_COOKIE) || !$this->validateCsrf($_COOKIE['csrf'], $csrf)) {
             throw new Exception('Invalid csrf token');
         }
 
@@ -67,10 +67,11 @@ class KoncertoLive extends KoncertoController
 
         $props = json_encode($this->getLiveProps());
 
-        if (!array_key_exists('csrf', $_SESSION) || empty($_SESSION['csrf'])) {
-            $_SESSION['csrf'] = sha1(uniqid((string)mt_rand(), true) . microtime(true) . getmypid());
+        if (!array_key_exists('csrf', $_COOKIE) || empty($_COOKIE['csrf'])) {
+            $_COOKIE['csrf'] = sha1(uniqid((string)mt_rand(), true) . microtime(true) . getmypid());
+            setcookie('csrf', $_COOKIE['csrf']);
         }
-        $csrf = $_SESSION['csrf'];
+        $csrf = $_COOKIE['csrf'];
 
         $controller = <<<JS
                     KoncertoImpulsus.controllers['live'] = function(controller) {
