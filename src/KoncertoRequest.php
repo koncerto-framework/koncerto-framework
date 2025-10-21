@@ -36,7 +36,7 @@ class KoncertoRequest
         if ('true' === Koncerto::getConfig('routing.useHash') && null !== Koncerto::getConfig('request.queryString')) {
             $queryString = array();
             parse_str(Koncerto::getConfig('request.queryString'), $queryString);
-            $_REQUEST = $queryString;
+            $_REQUEST = array_merge($queryString, $_REQUEST);
         }
 
         if (!array_key_exists($argName, $_REQUEST)) {

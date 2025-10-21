@@ -205,8 +205,7 @@ class Koncerto
         $cache = (array)json_decode((string)file_get_contents($cacheFile), true);
 
         if (null !== $source && (is_dir($source) || is_file($source))) {
-            $stat = stat($source);
-            if (false !== $stat && $stat[9] >= filemtime($cacheFile)) {
+            if (filemtime($source) > filemtime($cacheFile)) {
                 $cache = array();
             }
         }

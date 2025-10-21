@@ -96,7 +96,7 @@ class KoncertoRouter
                 $routeName = '/';
             }
             if (null !== $mainRoute && '/' === substr($mainRoute, 0, 1)) {
-                $routeName = $mainRoute . $routeName;
+                $routeName = $mainRoute . ('/' !== $routeName ? $routeName : '');
             }
 
             $routes[$routeName] = sprintf(

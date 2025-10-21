@@ -185,7 +185,7 @@ HTML, $content);
     private function getLiveProps()
     {
         $className = get_called_class();
-        $props = Koncerto::cache('live', $className);
+        $props = Koncerto::cache('live', $className, array(), '_controller');
         if (is_array($props)) {
             return $props;
         }

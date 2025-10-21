@@ -295,7 +295,7 @@ class KoncertoEntity
     private function getId()
     {
         $className = get_class($this);
-        $entity = Koncerto::cache('entities', $className);
+        $entity = Koncerto::cache('entities', $className, array(), '_entity');
         if (is_array($entity) && array_key_exists('id', $entity) && is_string($entity['id'])) {
             return $entity['id'];
         }
