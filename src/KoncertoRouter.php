@@ -148,11 +148,11 @@ class KoncertoRouter
             if (null === $routeName) {
                 continue;
             }
+            if (null !== $mainRoute && '/' === substr($mainRoute, 0, 1)) {
+                $routeName = ('/' === $mainRoute ? '' : $mainRoute) . ('/' !== $routeName ? $routeName : '');
+            }
             if (empty($routeName)) {
                 $routeName = '/';
-            }
-            if (null !== $mainRoute && '/' === substr($mainRoute, 0, 1)) {
-                $routeName = $mainRoute . ('/' !== $routeName ? $routeName : '');
             }
 
             $routes[$routeName] = sprintf(
