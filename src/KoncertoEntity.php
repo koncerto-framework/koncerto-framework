@@ -205,7 +205,6 @@ class KoncertoEntity
      */
     public static function find($class, $criteria = array())
     {
-        $entities = array();
         // @todo - get entityName and entityManager from entity internal annotation
         $dsn = Koncerto::getConfig('entityManager.default');
         if (null === $dsn) {

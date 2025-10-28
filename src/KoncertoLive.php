@@ -41,7 +41,7 @@ class KoncertoLive extends KoncertoController
         }
 
         $action = $request->get('_action');
-        if (null !== $action) {
+        if (null !== $action && is_string($action)) {
             $actions = $this->getLiveActions();
             if (!array_key_exists($action, $actions)) {
                 throw new Exception(sprintf('Unknow action %s for live controller %s', $action, get_class($this)));
