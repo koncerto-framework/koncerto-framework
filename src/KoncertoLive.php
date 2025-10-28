@@ -152,11 +152,7 @@ JS;
         $impulsusLocations = array(
             'impulsus.js',
             'src/KoncertoImpulsus.js',
-            '../src/KoncertoImpulsus.js',
-            '../../src/KoncertoImpulsus.js',
-            'koncerto-impulsus/src/KoncertoImpulsus.js',
-            '../koncerto-impulsus/src/KoncertoImpulsus.js',
-            '../../koncerto-impulsus/src/KoncertoImpulsus.js'
+            'koncerto-impulsus/src/KoncertoImpulsus.js'
         );
 
         $impulsusValidLocations = array_filter($impulsusLocations, function ($impulsusLocation) {
