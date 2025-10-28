@@ -131,7 +131,6 @@ class KoncertoLive extends KoncertoController
                                 }
                             });
                         });
-                        console.debug(controller);
                         controller.trigger('$' + 'render');
                     }
                     window.addEventListener('load', function() {
@@ -146,14 +145,14 @@ class KoncertoLive extends KoncertoController
 JS;
 
         $impulsusLocations = array(
-            'impulsus.js',
-            'dist/impulsus.js',
-            'src/KoncertoImpulsus.js',
-            'koncerto-impulsus/src/KoncertoImpulsus.js'
+            '/impulsus.js',
+            '/dist/impulsus.js',
+            '/src/KoncertoImpulsus.js',
+            '/koncerto-impulsus/src/KoncertoImpulsus.js'
         );
 
         $impulsusValidLocations = array_filter($impulsusLocations, function ($impulsusLocation) {
-            return is_file($impulsusLocation);
+            return is_file('.' . $impulsusLocation);
         });
 
         $impulsus = array_shift($impulsusValidLocations);

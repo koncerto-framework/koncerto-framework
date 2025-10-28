@@ -149,7 +149,10 @@ class KoncertoRouter
                 continue;
             }
             if (null !== $mainRoute && '/' === substr($mainRoute, 0, 1)) {
-                $routeName = ('/' === $mainRoute ? '' : $mainRoute) . ('/' !== $routeName ? $routeName : '');
+                $routeName = $mainRoute . $routeName;
+            }
+            if ('//' === $routeName) {
+                $routeName = '/';
             }
             if (empty($routeName)) {
                 $routeName = '/';
