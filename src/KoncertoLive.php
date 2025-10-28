@@ -40,6 +40,15 @@ class KoncertoLive extends KoncertoController
             throw new Exception('Invalid csrf token');
         }
 
+        $action = $request->get('_action');
+        if (null !== $action) {
+            $actions = $this->getLiveActions();
+            if (!array_key_exists($action, $actions)) {
+                throw new Exception(sprintf('Unknow action %s for live controller %s', $action, get_class($this)));
+            }
+            $this->$action();
+        }
+
         $props = $this->getLiveProps();
 
         $obj = array();
@@ -78,13 +87,17 @@ class KoncertoLive extends KoncertoController
                         function liveProps() {
                             return {$props};
                         }
-                        function liveUpdate(element) {
+                        function liveUpdate(controller) {
                             var update = '';
+                            if ('param' in controller && null !== controller.param) {
+                                update += '&_action=' + controller.param;
+                                controller.param = null;
+                            }
                             var props = liveProps();
                             for (var propName in props) {
                                 var prop = props[propName];
                                 if (prop.writable) {
-                                    var target = element.targets['$' + propName];
+                                    var target = controller.targets['$' + propName];
                                     var value = target.innerText;
                                     var tagName = new String(target.tagName).toLowerCase();
                                     if ('input' === tagName) {
@@ -99,7 +112,7 @@ class KoncertoLive extends KoncertoController
 
                             return update;
                         }
-                        controller.on('$' + 'render',  function(controller) {
+                        controller.render = function(controller) {
                             var csrf = 'csrf=' + controller.element.dataset.csrf;
                             KoncertoImpulsus.fetch('_live?' + csrf + liveUpdate(controller), false, function(response) {
                                 var json = JSON.parse(response.responseText);
@@ -130,8 +143,14 @@ class KoncertoLive extends KoncertoController
                                     }
                                 }
                             });
+                        }
+                        controller.on('action', function(controller) {
+                            controller.render(controller);
                         });
-                        controller.trigger('$' + 'render');
+                        controller.on('$' + 'render',  function(controller) {
+                            controller.render(controller);
+                        });
+                        controller.render(controller);
                     }
                     window.addEventListener('load', function() {
                         setTimeout(function() {
@@ -202,6 +221,37 @@ HTML, $content);
         Koncerto::cache('live', null, array($className => $props));
 
         return $props;
+    }
+
+    /**
+     * Get live actions from class internal comments
+     *
+     * @return array<string, mixed>
+     */
+    private function getLiveActions()
+    {
+        $className = get_called_class();
+        $actions = Koncerto::cache('live', $className, array(), '_controller');
+        if (is_array($actions)) {
+            return $actions;
+        }
+
+        $actions = array();
+
+        $class = new ReflectionClass(get_called_class());
+        $methods = $class->getMethods(ReflectionProperty::IS_PUBLIC);
+        foreach ($methods as $method) {
+            $internal = Koncerto::getInternal($method->getDocComment());
+            if (array_key_exists('live', $internal) && is_array($internal['live'])) {
+                if (array_key_exists('action', $internal['live'])) {
+                    $actions[$method->getName()] = $internal['live']['action'];
+                }
+            }
+        }
+
+        Koncerto::cache('live', null, array($className => $actions));
+
+        return $actions;
     }
 
     /**
