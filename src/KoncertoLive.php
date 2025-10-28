@@ -131,8 +131,9 @@ class KoncertoLive extends KoncertoController
                                 }
                             });
                         });
+                        console.debug(controller);
+                        controller.trigger('$' + 'render');
                     }
-
                     window.addEventListener('load', function() {
                         setTimeout(function() {
                             document.querySelector(':root').setAttribute('data-controller', 'live');
@@ -140,23 +141,19 @@ class KoncertoLive extends KoncertoController
                             document.querySelectorAll('[data-model]').forEach(function(model) {
                                 model.setAttribute('data-target', '$' + model.getAttribute('data-model'));
                             });
-                            var props = {$props};
-                            for (var propName in props) {
-                                var prop = props[propName];
-                                console.debug(propName, prop);
-                            }
                         }, 100);
                     });
 JS;
 
         $impulsusLocations = array(
             'impulsus.js',
+            'dist/impulsus.js',
             'src/KoncertoImpulsus.js',
             'koncerto-impulsus/src/KoncertoImpulsus.js'
         );
 
         $impulsusValidLocations = array_filter($impulsusLocations, function ($impulsusLocation) {
-            return is_file(dirname(__FILE__) . '/' . $impulsusLocation);
+            return is_file($impulsusLocation);
         });
 
         $impulsus = array_shift($impulsusValidLocations);
