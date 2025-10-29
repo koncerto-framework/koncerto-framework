@@ -114,7 +114,7 @@ class KoncertoLive extends KoncertoController
                         }
                         controller.render = function(controller) {
                             var csrf = 'csrf=' + controller.element.dataset.csrf;
-                            KoncertoImpulsus.fetch('_live?' + csrf + liveUpdate(controller), false, function(response) {
+                            KoncertoImpulsus.fetch('{$this->getRoute()}/_live?' + csrf + liveUpdate(controller), false, function(response) {
                                 var json = JSON.parse(response.responseText);
                                 var props = liveProps();
                                 for (var propName in props) {

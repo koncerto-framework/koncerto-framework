@@ -112,6 +112,9 @@ class Koncerto
         if (null === $match && '.php' !== strrchr($pathInfo, '.') && is_file('.' . $pathInfo)) {
             return (string)file_get_contents('.' . $pathInfo);
         }
+        if (null === $match && is_file($pathInfo)) {
+            return file_get_contents($pathInfo);
+        }
         if (null === $match) {
             throw new Exception(sprintf('No match for route %s', $pathInfo));
         }
