@@ -98,15 +98,17 @@ class KoncertoLive extends KoncertoController
                                 var prop = props[propName];
                                 if (prop.writable) {
                                     var target = controller.targets['$' + propName];
-                                    var value = target.innerText;
-                                    var tagName = new String(target.tagName).toLowerCase();
-                                    if ('input' === tagName) {
-                                        value = target.value;
-                                        if ('checkbox' === target.type) {
-                                            value = target.checked ? target.value : '';
+                                    if (target) {
+                                        var value = target.innerText;
+                                        var tagName = new String(target.tagName).toLowerCase();
+                                        if ('input' === tagName) {
+                                            value = target.value;
+                                            if ('checkbox' === target.type) {
+                                                value = target.checked ? target.value : '';
+                                            }
                                         }
+                                        update += '&' + encodeURIComponent(propName) + '=' + encodeURIComponent(value);
                                     }
-                                    update += '&' + encodeURIComponent(propName) + '=' + encodeURIComponent(value);
                                 }
                             }
 
