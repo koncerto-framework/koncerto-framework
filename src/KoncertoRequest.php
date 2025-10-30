@@ -16,8 +16,12 @@ class KoncertoRequest
             return $_SERVER['PATH_INFO'];
         }
 
+        if (!array_key_exists('QUERY_STRING', $_SERVER)) {
+            $_SERVER['QUERY_STRING'] = '';
+        }
+
         if (array_key_exists('REQUEST_URI', $_SERVER)) {
-            return $_SERVER['REQUEST_URI'];
+            return str_replace('?' . $_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']);
         }
 
         if ('true' === Koncerto::getConfig('routing.useHash')) {
