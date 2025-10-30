@@ -102,7 +102,8 @@ class KoncertoController
             $json = (string)json_encode($data, JSON_PRETTY_PRINT);
         }
 
-        $response = (new KoncertoResponse())->setHeader('Content-type', 'application/json');
+        $response = new KoncertoResponse();
+        $response->setHeader('Content-type', 'application/json');
 
         if (array_key_exists('headers', $options) && is_array($options['headers'])) {
             foreach ($options['headers'] as $headerName => $headerValue) {
@@ -123,7 +124,9 @@ class KoncertoController
      */
     public function redirect($url)
     {
-        return (new KoncertoResponse())
+        $response = new KoncertoResponse();
+
+        return $response
             ->setHeader('Location', $url)
             ->setContent(null);
     }

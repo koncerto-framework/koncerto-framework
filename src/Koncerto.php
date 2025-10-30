@@ -113,7 +113,7 @@ class Koncerto
             return (string)file_get_contents('.' . $pathInfo);
         }
         if (null === $match && is_file($pathInfo)) {
-            return file_get_contents($pathInfo);
+            return (string)file_get_contents($pathInfo);
         }
         if (null === $match) {
             throw new Exception(sprintf('No match for route %s', $pathInfo));
@@ -128,7 +128,8 @@ class Koncerto
         if (!class_exists($controller) && is_file($classFile)) {
             include_once $classFile;
         }
-        $response = (new $controller())->$action();
+        $controllerClass = new $controller();
+        $response = $controllerClass->$action();
         $headers = $response->getHeaders();
         foreach ($headers as $headerName => $headerValue) {
             header(sprintf('%s: %s', $headerName, $headerValue));

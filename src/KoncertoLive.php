@@ -116,35 +116,39 @@ class KoncertoLive extends KoncertoController
                         }
                         controller.render = function(controller) {
                             var csrf = 'csrf=' + controller.element.dataset.csrf;
-                            KoncertoImpulsus.fetch('{$this->getRoute()}/_live?' + csrf + liveUpdate(controller), false, function(response) {
-                                var json = JSON.parse(response.responseText);
-                                var props = liveProps();
-                                for (var propName in props) {
-                                    var prop = props[propName];
-                                    if (propName in json) {
-                                        var target = controller.targets['$' + propName];
-                                        var tagName = new String(target.tagName).toLowerCase();
-                                        if ('input' === tagName) {
-                                            if ('checkbox' === target.type) {
-                                                target.checked = target.value === json[propName];
+                            KoncertoImpulsus.fetch(
+                                '{$this->getRoute()}/_live?' + csrf + liveUpdate(controller),
+                                false,
+                                function(response) {
+                                    var json = JSON.parse(response.responseText);
+                                    var props = liveProps();
+                                    for (var propName in props) {
+                                        var prop = props[propName];
+                                        if (propName in json) {
+                                            var target = controller.targets['$' + propName];
+                                            var tagName = new String(target.tagName).toLowerCase();
+                                            if ('input' === tagName) {
+                                                if ('checkbox' === target.type) {
+                                                    target.checked = target.value === json[propName];
+                                                    return;
+                                                }
+                                                target.value = json[propName];
                                                 return;
                                             }
-                                            target.value = json[propName];
-                                            return;
-                                        }
-                                        if ('select' === tagName) {
-                                            for (var i = 0; i < target.options.length; i++) {
-                                                if (json[prop] === target.options[i].value) {
-                                                    target.options.selectedIndex = i;
-                                                    break;
+                                            if ('select' === tagName) {
+                                                for (var i = 0; i < target.options.length; i++) {
+                                                    if (json[prop] === target.options[i].value) {
+                                                        target.options.selectedIndex = i;
+                                                        break;
+                                                    }
                                                 }
+                                                return;
                                             }
-                                            return;
+                                            target.innerText = json[propName];
                                         }
-                                        target.innerText = json[propName];
                                     }
                                 }
-                            });
+                            );
                         }
                         controller.on('action', function(controller) {
                             controller.render(controller);
@@ -182,14 +186,22 @@ JS;
             $impulsus = 'https://koncerto-framework.github.io/koncerto-playground/impulsus.js';
         }
 
-        $content = str_replace('</head>', <<<HTML
-                <script data-reload src="{$impulsus}"
-                onload="if (window.reloadScript) reloadScript('#live-controller-script')"></script>
-                <script id="live-controller-script" type="text/javascript">
-                    {$controller}
-                </script>
-            </head>
-HTML, $content);
+        $content = str_replace(
+            '</head>',
+            sprintf(
+                "
+                    <script data-reload src=\"%s\"
+                    onload=\"if (window.reloadScript) reloadScript('#live-controller-script')\"></script>
+                    <script id=\"live-controller-script\" type=\"text/javascript\">
+                        %s
+                    </script>
+                    </head>
+                ",
+                $impulsus,
+                $controller
+            ),
+            $content
+        );
 
         return $response->setContent($content);
     }

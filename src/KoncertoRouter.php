@@ -137,7 +137,8 @@ class KoncertoRouter
     private function getControllerRoutes($className)
     {
         $ref = new ReflectionClass($className);
-        $mainRoute = (new KoncertoController())->getRoute($className);
+        $controller = new KoncertoController();
+        $mainRoute = $controller->getRoute($className);
         /**
           * @var array<string, string>
           */
